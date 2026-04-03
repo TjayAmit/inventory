@@ -31,7 +31,7 @@ class UserController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('users/index', [
+        return Inertia::render('users/Index', [
             'users' => $users,
             'filters' => $request->only(['search', 'role']),
             'roles' => Role::all(),
@@ -45,7 +45,7 @@ class UserController extends Controller
     {
         $this->authorize('create users');
 
-        return Inertia::render('Users/Create', [
+        return Inertia::render('users/Create', [
             'roles' => Role::all(),
         ]);
     }
@@ -91,7 +91,7 @@ class UserController extends Controller
 
         $user->load('roles', 'permissions');
 
-        return Inertia::render('Users/Show', [
+        return Inertia::render('users/Show', [
             'user' => $user,
         ]);
     }
@@ -105,7 +105,7 @@ class UserController extends Controller
 
         $user->load('roles');
 
-        return Inertia::render('Users/Edit', [
+        return Inertia::render('users/Edit', [
             'user' => $user,
             'roles' => Role::all(),
         ]);

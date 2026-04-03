@@ -65,12 +65,16 @@ export default function UsersShow({ user }: ShowProps) {
 
                             <div>
                                 <Label className="text-muted-foreground">Permissions</Label>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-1">
-                                    {user.permissions.map((permission) => (
-                                        <Badge key={permission.id} variant="secondary">
-                                            {permission.name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                        </Badge>
-                                    ))}
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                    {user.permissions.length > 0 ? (
+                                        user.permissions.map((permission) => (
+                                            <Badge key={permission.id} variant="secondary">
+                                                {permission.name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                            </Badge>
+                                        ))
+                                    ) : (
+                                        <span className="text-sm text-muted-foreground italic">No permissions assigned</span>
+                                    )}
                                 </div>
                             </div>
 

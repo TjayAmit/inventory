@@ -35,6 +35,9 @@ class UserController extends Controller
             'users' => $users,
             'filters' => $request->only(['search', 'role']),
             'roles' => Role::all(),
+            'auth' => [
+                'user' => $request->user()->load('roles'),
+            ],
         ]);
     }
 

@@ -12,7 +12,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
     
     // User Management Routes
-    Route::resource('users', UserController::class)->except(['create']);
+    Route::resource('users', UserController::class);
 });
 
 require __DIR__.'/settings.php';

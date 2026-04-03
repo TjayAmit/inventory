@@ -47,6 +47,11 @@ const mainNavItems: NavItem[] = [
         icon: Warehouse,
         permission: 'view products',
     },
+    {
+        title: 'Users',
+        href: '/users',
+        icon: LayoutGrid,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

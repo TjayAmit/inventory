@@ -21,6 +21,9 @@ class RolePermissionSeeder extends Seeder
         // Store Manager permissions
         $storeManagerRole = Role::findByName('store_manager');
         $storeManagerRole->givePermissionTo([
+            'view users',
+            'create users',
+            'edit users',
             'manage products',
             'view products',
             'create products',

@@ -6,7 +6,11 @@ use Tests\Concerns\HasRolesAndPermissions;
 
 uses(HasRolesAndPermissions::class);
 
+<<<<<<< HEAD
 it('admin can view users list', function () {
+=======
+test('admin can view users list', function () {
+>>>>>>> ca08c48 (feat(auth): implement complete user authentication and permission system)
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -18,7 +22,11 @@ it('admin can view users list', function () {
     // Just check that the response is successful - the Inertia rendering issue is frontend-only
 });
 
+<<<<<<< HEAD
 it('non_admin cannot view users list', function () {
+=======
+test('non_admin cannot view users list', function () {
+>>>>>>> ca08c48 (feat(auth): implement complete user authentication and permission system)
     $this->setUpRolesAndPermissions();
     
     $cashier = User::factory()->create();
@@ -29,7 +37,11 @@ it('non_admin cannot view users list', function () {
     $response->assertStatus(403);
 });
 
+<<<<<<< HEAD
 it('admin can create user', function () {
+=======
+test('admin can create user', function () {
+>>>>>>> ca08c48 (feat(auth): implement complete user authentication and permission system)
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -50,7 +62,11 @@ it('admin can create user', function () {
     ]);
 });
 
+<<<<<<< HEAD
 it('admin can edit user', function () {
+=======
+test('admin can edit user', function () {
+>>>>>>> ca08c48 (feat(auth): implement complete user authentication and permission system)
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -76,7 +92,11 @@ it('admin can edit user', function () {
     $this->assertTrue($user->hasRole('store_manager'));
 });
 
+<<<<<<< HEAD
 it('admin cannot delete admin user', function () {
+=======
+test('admin cannot delete admin user', function () {
+>>>>>>> ca08c48 (feat(auth): implement complete user authentication and permission system)
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -90,7 +110,11 @@ it('admin cannot delete admin user', function () {
     ]);
 });
 
+<<<<<<< HEAD
 it('store_manager can create users but not admin', function () {
+=======
+test('store_manager can create users but not admin', function () {
+>>>>>>> ca08c48 (feat(auth): implement complete user authentication and permission system)
     $this->setUpRolesAndPermissions();
     
     $manager = User::factory()->create();
@@ -108,7 +132,11 @@ it('store_manager can create users but not admin', function () {
     $response->assertSessionHas('error');
 });
 
+<<<<<<< HEAD
 it('user creation validation works', function () {
+=======
+test('user creation validation works', function () {
+>>>>>>> ca08c48 (feat(auth): implement complete user authentication and permission system)
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();

@@ -10,7 +10,7 @@ beforeEach(function () {
     $this->skipUnlessFortifyHas(Features::emailVerification());
 });
 
-test('email verification screen can be rendered', function () {
+it('email verification screen can be rendered', function () {
     $user = User::factory()->unverified()->create();
 
     $response = $this->actingAs($user)->get(route('verification.notice'));
@@ -18,7 +18,7 @@ test('email verification screen can be rendered', function () {
     $response->assertOk();
 });
 
-test('email can be verified', function () {
+it('email can be verified', function () {
     $user = User::factory()->unverified()->create();
 
     Event::fake();
@@ -36,7 +36,7 @@ test('email can be verified', function () {
     $response->assertRedirect(route('dashboard', absolute: false).'?verified=1');
 });
 
-test('email is not verified with invalid hash', function () {
+it('email is not verified with invalid hash', function () {
     $user = User::factory()->unverified()->create();
 
     Event::fake();
@@ -53,7 +53,7 @@ test('email is not verified with invalid hash', function () {
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
 });
 
-test('email is not verified with invalid user id', function () {
+it('email is not verified with invalid user id', function () {
     $user = User::factory()->unverified()->create();
 
     Event::fake();
@@ -70,7 +70,7 @@ test('email is not verified with invalid user id', function () {
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
 });
 
-test('verified user is redirected to dashboard from verification prompt', function () {
+it('verified user is redirected to dashboard from verification prompt', function () {
     $user = User::factory()->create();
 
     Event::fake();
@@ -81,7 +81,7 @@ test('verified user is redirected to dashboard from verification prompt', functi
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
-test('already verified user visiting verification link is redirected without firing event again', function () {
+it('already verified user visiting verification link is redirected without firing event again', function () {
     $user = User::factory()->create();
 
     Event::fake();

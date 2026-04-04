@@ -7,16 +7,28 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { usePermissions } from '@/hooks/use-permissions';
 import type { NavItem } from '@/types';
 
 export function NavMain({ items = [] }: { items: NavItem[] }) {
     const { isCurrentUrl } = useCurrentUrl();
+    const { canAccessSidebarItem, isAuthenticated } = usePermissions();
+
+    // Only filter items if user is authenticated
+    const filteredItems = isAuthenticated 
+        ? items.filter((item) => canAccessSidebarItem(item))
+        : [];
+
+    // Don't render sidebar content if user is not authenticated
+    if (!isAuthenticated || filteredItems.length === 0) {
+        return null;
+    }
 
     return (
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
-                {items.map((item) => (
+                {filteredItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                             asChild

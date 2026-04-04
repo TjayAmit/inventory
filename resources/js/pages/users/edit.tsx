@@ -1,6 +1,6 @@
 import React from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { Head, useForm, router } from '@inertiajs/react';
+import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,7 +35,7 @@ interface EditProps {
 }
 
 export default function UsersEdit({ user, roles }: EditProps) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, put, processing, errors } = useForm({
         name: user.name,
         email: user.email,
         password: '',
@@ -45,7 +45,7 @@ export default function UsersEdit({ user, roles }: EditProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.put(`/users/${user.id}`, data);
+        put(`/users/${user.id}`);
     };
 
     const handleDelete = () => {
@@ -63,20 +63,6 @@ export default function UsersEdit({ user, roles }: EditProps) {
         <>
             <Head title={`Edit User: ${user.name}`} />
             <AppContentWrapper>
-                {/* Page Header - Outside Card */}
-                <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-4">
-                        <Link href="/users">
-                            <Button variant="outline" size="icon">
-                                <ArrowLeft className="w-4 h-4" />
-                            </Button>
-                        </Link>
-                        <h1 className="text-3xl font-bold tracking-tight">Edit User</h1>
-                    </div>
-                    <Button variant="destructive" onClick={handleDelete}>
-                        Delete User
-                    </Button>
-                </div>
 
                 {/* Breadcrumbs */}
                 <Breadcrumb className="mb-4">
@@ -90,91 +76,113 @@ export default function UsersEdit({ user, roles }: EditProps) {
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
+                
+                {/* Page Header */}
+                <div className="mb-6">
+                    <h1 className="text-2xl font-bold tracking-tight">Edit User</h1>
+                    <p className="text-muted-foreground mt-1">Update user information and permissions</p>
+                </div>
 
-                {/* Card Content */}
-                <Card>
-                    <CardContent className="pt-6">
-                        <form onSubmit={handleSubmit}>
-                            <div className="space-y-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Name</Label>
-                                    <Input
-                                        id="name"
-                                        type="text"
-                                        value={data.name}
-                                        onChange={(e) => setData('name', e.target.value)}
-                                        required
-                                    />
-                                    {errors.name && (
-                                        <p className="text-sm text-destructive">{errors.name}</p>
-                                    )}
+                {/* Card Content - Compact Form */}
+                <div className="max-w-2xl">
+                    <Card>
+                        <CardContent className="pt-6">
+                            <form onSubmit={handleSubmit}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="name">Name</Label>
+                                        <Input
+                                            id="name"
+                                            type="text"
+                                            value={data.name}
+                                            onChange={(e) => setData('name', e.target.value)}
+                                            required
+                                            className="h-10"
+                                        />
+                                        {errors.name && (
+                                            <p className="text-sm text-destructive">{errors.name}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email">Email</Label>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            value={data.email}
+                                            onChange={(e) => setData('email', e.target.value)}
+                                            required
+                                            className="h-10"
+                                        />
+                                        {errors.email && (
+                                            <p className="text-sm text-destructive">{errors.email}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password">Password (leave empty to keep current)</Label>
+                                        <Input
+                                            id="password"
+                                            type="password"
+                                            value={data.password}
+                                            onChange={(e) => setData('password', e.target.value)}
+                                            className="h-10"
+                                        />
+                                        {errors.password && (
+                                            <p className="text-sm text-destructive">{errors.password}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password_confirmation">Confirm Password</Label>
+                                        <Input
+                                            id="password_confirmation"
+                                            type="password"
+                                            value={data.password_confirmation}
+                                            onChange={(e) => setData('password_confirmation', e.target.value)}
+                                            className="h-10"
+                                        />
+                                        {errors.password_confirmation && (
+                                            <p className="text-sm text-destructive">{errors.password_confirmation}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-2 md:col-span-2">
+                                        <Label>Roles</Label>
+                                        <AutoSuggestion
+                                            options={roles.map(role => ({
+                                                value: role.name,
+                                                label: role.name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+                                            }))}
+                                            selected={data.roles}
+                                            onChange={(selected: string[]) => setData('roles', selected)}
+                                            placeholder="Select roles..."
+                                        />
+                                        {errors.roles && (
+                                            <p className="text-sm text-destructive">{errors.roles}</p>
+                                        )}
+                                    </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        value={data.email}
-                                        onChange={(e) => setData('email', e.target.value)}
-                                        required
-                                    />
-                                    {errors.email && (
-                                        <p className="text-sm text-destructive">{errors.email}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="password">Password (leave empty to keep current)</Label>
-                                    <Input
-                                        id="password"
-                                        type="password"
-                                        value={data.password}
-                                        onChange={(e) => setData('password', e.target.value)}
-                                    />
-                                    {errors.password && (
-                                        <p className="text-sm text-destructive">{errors.password}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="password_confirmation">Confirm Password</Label>
-                                    <Input
-                                        id="password_confirmation"
-                                        type="password"
-                                        value={data.password_confirmation}
-                                        onChange={(e) => setData('password_confirmation', e.target.value)}
-                                    />
-                                    {errors.password_confirmation && (
-                                        <p className="text-sm text-destructive">{errors.password_confirmation}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-3">
-                                    <Label>Roles</Label>
-                                    <AutoSuggestion
-                                        options={roles.map(role => ({
-                                            value: role.name,
-                                            label: role.name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
-                                        }))}
-                                        selected={data.roles}
-                                        onChange={(selected: string[]) => setData('roles', selected)}
-                                        placeholder="Select roles..."
-                                    />
-                                    {errors.roles && (
-                                        <p className="text-sm text-destructive">{errors.roles}</p>
-                                    )}
-                                </div>
-
-                                <div className="flex justify-end">
+                                <div className="flex justify-between items-center mt-6 pt-4 border-t border-border">
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleDelete}
+                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    >
+                                        <Trash2 className="w-4 h-4 mr-2" />
+                                        Delete User
+                                    </Button>
                                     <Button type="submit" disabled={processing}>
                                         Update User
                                     </Button>
                                 </div>
-                            </div>
-                        </form>
-                    </CardContent>
-                </Card>
+                            </form>
+                        </CardContent>
+                    </Card>
+                </div>
             </AppContentWrapper>
         </>
     );

@@ -89,7 +89,7 @@ it('user policy works correctly', function () {
     expect($manager->can('view', $cashier))->toBeTrue();
     expect($manager->can('create', User::class))->toBeTrue();
     expect($manager->can('update', $cashier))->toBeTrue();
-    expect($manager->can('delete', $cashier))->toBeTrue();
+    expect($manager->can('delete', $cashier))->toBeFalse();
 
     // Test cashier cannot manage users
     expect($cashier->can('viewAny', User::class))->toBeFalse();

@@ -6,8 +6,13 @@ use App\DTOs\User\UserFiltersDTO;
 use App\Models\User;
 use App\Repositories\Eloquent\UserRepository;
 use Spatie\Permission\Models\Role;
+use Tests\Concerns\HasRolesAndPermissions;
+
+uses(HasRolesAndPermissions::class);
 
 it('UserRepository can create user', function () {
+    $this->setUpRolesAndPermissions();
+    
     $repository = new UserRepository(new User());
     
     $dto = new CreateUserDTO(
@@ -27,6 +32,8 @@ it('UserRepository can create user', function () {
 });
 
 it('UserRepository can find user by ID', function () {
+    $this->setUpRolesAndPermissions();
+    
     $user = User::factory()->create();
     $repository = new UserRepository(new User());
 
@@ -38,6 +45,8 @@ it('UserRepository can find user by ID', function () {
 });
 
 it('UserRepository can find user by email', function () {
+    $this->setUpRolesAndPermissions();
+    
     $user = User::factory()->create(['email' => 'test@example.com']);
     $repository = new UserRepository(new User());
 
@@ -48,6 +57,8 @@ it('UserRepository can find user by email', function () {
 });
 
 it('UserRepository can update user', function () {
+    $this->setUpRolesAndPermissions();
+    
     $user = User::factory()->create();
     $repository = new UserRepository(new User());
 
@@ -66,6 +77,8 @@ it('UserRepository can update user', function () {
 });
 
 it('UserRepository can delete user', function () {
+    $this->setUpRolesAndPermissions();
+    
     $user = User::factory()->create();
     $repository = new UserRepository(new User());
 
@@ -76,6 +89,8 @@ it('UserRepository can delete user', function () {
 });
 
 it('UserRepository can paginate with filters', function () {
+    $this->setUpRolesAndPermissions();
+    
     User::factory()->count(20)->create();
     $repository = new UserRepository(new User());
 
@@ -93,6 +108,8 @@ it('UserRepository can paginate with filters', function () {
 });
 
 it('UserRepository can search users', function () {
+    $this->setUpRolesAndPermissions();
+    
     User::factory()->create(['name' => 'John Doe']);
     User::factory()->create(['name' => 'Jane Smith']);
     User::factory()->create(['email' => 'john@example.com']);
@@ -105,6 +122,8 @@ it('UserRepository can search users', function () {
 });
 
 it('UserRepository can get users by role', function () {
+    $this->setUpRolesAndPermissions();
+    
     $cashierRole = Role::findByName('cashier');
     $adminRole = Role::findByName('admin');
 
@@ -123,6 +142,8 @@ it('UserRepository can get users by role', function () {
 });
 
 it('UserRepository checks email existence', function () {
+    $this->setUpRolesAndPermissions();
+    
     User::factory()->create(['email' => 'test@example.com']);
     $repository = new UserRepository(new User());
 
@@ -131,6 +152,8 @@ it('UserRepository checks email existence', function () {
 });
 
 it('UserRepository checks email existence with exclusion', function () {
+    $this->setUpRolesAndPermissions();
+    
     $user = User::factory()->create(['email' => 'test@example.com']);
     $repository = new UserRepository(new User());
 
@@ -139,6 +162,8 @@ it('UserRepository checks email existence with exclusion', function () {
 });
 
 it('UserRepository gets user count by role', function () {
+    $this->setUpRolesAndPermissions();
+    
     $cashierRole = Role::findByName('cashier');
     
     User::factory()->count(3)->create()->each(function ($user) use ($cashierRole) {

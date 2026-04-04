@@ -3,7 +3,7 @@
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
+// use Laravel\Sanctum\Sanctum; // Sanctum not installed, using regular auth
 
 uses(RefreshDatabase::class);
 

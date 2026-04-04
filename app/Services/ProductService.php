@@ -187,9 +187,10 @@ class ProductService
         }
 
         // Business rule: Cannot delete product with sales records
-        if ($product->saleItems()->exists()) {
-            throw new \InvalidArgumentException('Cannot delete product that has sales records. Consider deactivating it instead.');
-        }
+        // TODO: Implement when SaleItem model exists
+        // if ($product->saleItems()->exists()) {
+        //     throw new \InvalidArgumentException('Cannot delete product that has sales records. Consider deactivating it instead.');
+        // }
 
         try {
             DB::beginTransaction();
@@ -375,6 +376,20 @@ class ProductService
             productCode: $product->product_code,
             price: $product->price,
             barcode: $barcode,
+            description: $product->description,
+            costPrice: $product->cost_price,
+            categoryId: $product->category_id,
+            isActive: $product->is_active,
+            isTaxable: $product->is_taxable,
+            unit: $product->unit,
+            weight: $product->weight,
+            volume: $product->volume,
+            brand: $product->brand,
+            manufacturer: $product->manufacturer,
+            supplier: $product->supplier,
+            reorderPoint: $product->reorder_point,
+            maxStock: $product->max_stock,
+            notes: $product->notes,
             productId: $productId
         );
 
@@ -487,11 +502,12 @@ class ProductService
         }
 
         // Validate deactivation if product has sales
-        if ($dto->getIsActive() === false && $product->saleItems()->exists()) {
-            throw ValidationException::withMessages([
-                'isActive' => 'Cannot deactivate product that has sales records.'
-            ]);
-        }
+        // TODO: Implement when SaleItem model exists
+        // if ($dto->getIsActive() === false && $product->saleItems()->exists()) {
+        //     throw ValidationException::withMessages([
+        //         'isActive' => 'Cannot deactivate product that has sales records.'
+        //     ]);
+        // }
     }
 
     /**

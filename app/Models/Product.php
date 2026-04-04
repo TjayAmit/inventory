@@ -122,11 +122,12 @@ class Product extends Model
 
     /**
      * Get the sale items for the product.
+     * TODO: Implement when sales module is created
      */
-    public function saleItems(): HasMany
-    {
-        return $this->hasMany(SaleItem::class);
-    }
+    // public function saleItems(): HasMany
+    // {
+    //     return $this->hasMany(SaleItem::class);
+    // }
 
     /**
      * Scope a query to only include active products.

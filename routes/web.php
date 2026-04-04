@@ -16,18 +16,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // User Management Routes
     Route::resource('users', UserController::class);
 
-    // Product Management Routes
-    Route::resource('products', ProductController::class);
+    // Product Management Routes - Additional routes MUST come before resource route
+    Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
+    Route::get('products/find-by-barcode', [ProductController::class, 'findByBarcode'])->name('products.find-by-barcode');
+    Route::get('products/find-by-product-code', [ProductController::class, 'findByProductCode'])->name('products.find-by-product-code');
+    Route::get('products/dropdown', [ProductController::class, 'dropdown'])->name('products.dropdown');
+    Route::get('products/by-category/{categoryId}', [ProductController::class, 'byCategory'])->name('products.by-category');
+    Route::get('products/by-brand/{brand}', [ProductController::class, 'byBrand'])->name('products.by-brand');
+    Route::get('products/by-supplier/{supplier}', [ProductController::class, 'bySupplier'])->name('products.by-supplier');
+    Route::get('products/with-barcodes', [ProductController::class, 'withBarcodes'])->name('products.with-barcodes');
+    Route::get('products/without-barcodes', [ProductController::class, 'withoutBarcodes'])->name('products.without-barcodes');
+    Route::get('products/with-profit-margins', [ProductController::class, 'withProfitMargins'])->name('products.with-profit-margins');
+    Route::get('products/statistics', [ProductController::class, 'statistics'])->name('products.statistics');
     Route::put('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
     Route::put('products/{product}/generate-barcode', [ProductController::class, 'generateBarcode'])->name('products.generate-barcode');
+    Route::resource('products', ProductController::class);
 
-    // Category Management Routes
-    Route::resource('categories', CategoryController::class);
-    Route::put('categories/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('categories.toggle-status');
-    Route::put('categories/sort-order', [CategoryController::class, 'updateSortOrder'])->name('categories.sort-order');
-    Route::put('categories/{category}/move', [CategoryController::class, 'move'])->name('categories.move');
-    
-    // Additional Category Routes
+    // Category Management Routes - Additional routes MUST come before resource route
     Route::get('categories/search', [CategoryController::class, 'search'])->name('categories.search');
     Route::get('categories/dropdown', [CategoryController::class, 'dropdown'])->name('categories.dropdown');
     Route::get('categories/tree', [CategoryController::class, 'tree'])->name('categories.tree');
@@ -35,6 +40,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('categories/with-product-counts', [CategoryController::class, 'withProductCounts'])->name('categories.with-product-counts');
     Route::get('categories/{category}/descendants', [CategoryController::class, 'descendants'])->name('categories.descendants');
     Route::get('categories/root', [CategoryController::class, 'root'])->name('categories.root');
+    Route::put('categories/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('categories.toggle-status');
+    Route::put('categories/sort-order', [CategoryController::class, 'updateSortOrder'])->name('categories.sort-order');
+    Route::put('categories/{category}/move', [CategoryController::class, 'move'])->name('categories.move');
+    Route::resource('categories', CategoryController::class);
 });
 
 require __DIR__.'/settings.php';

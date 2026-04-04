@@ -243,10 +243,10 @@ class ProductRepository implements ProductRepositoryInterface
         $product = $this->model->findOrFail($id);
 
         // Prevent deletion if product has stock movements or sales
-        // This is a simplified check - in a full implementation, you'd check related records
-        if ($product->saleItems()->exists()) {
-            throw new \InvalidArgumentException('Cannot delete product that has sales records.');
-        }
+        // TODO: Implement sales check when SaleItem model exists
+        // if ($product->saleItems()->exists()) {
+        //     throw new \InvalidArgumentException('Cannot delete product that has sales records.');
+        // }
 
         return $product->delete();
     }

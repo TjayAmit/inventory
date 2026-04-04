@@ -266,7 +266,7 @@ it('API prevents deleting admin users', function () {
 it('API can search users', function () {
     $this->setUpRolesAndPermissions();
     
-    $admin = User::factory()->create();
+    $admin = User::factory()->create(['name' => 'Admin User', 'email' => 'admin@example.com']);
     $admin->assignRole('admin');
     
     $this->actingAs($admin);

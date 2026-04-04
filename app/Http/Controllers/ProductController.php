@@ -41,9 +41,14 @@ class ProductController extends Controller
         
         $products = $this->productService->getPaginatedProducts($filters, $perPage);
 
-        return Inertia::render('Products/Index', [
+        // Get categories for filter dropdown
+        $categoryRepo = app(\App\Repositories\Eloquent\CategoryRepository::class);
+        $categoryOptions = $categoryRepo->getForDropdown();
+
+        return Inertia::render('products/index', [
             'products' => $products,
             'filters' => $filters->toArray(),
+            'categories' => $categoryOptions,
             'can' => [
                 'create' => auth()->user()->can('create', Product::class),
                 'edit' => auth()->user()->can('update', Product::class),
@@ -63,7 +68,7 @@ class ProductController extends Controller
         $categoryRepo = app(\App\Repositories\Eloquent\CategoryRepository::class);
         $categoryOptions = $categoryRepo->getForDropdown();
 
-        return Inertia::render('Products/Create', [
+        return Inertia::render('products/create', [
             'categories' => $categoryOptions,
         ]);
     }
@@ -115,7 +120,7 @@ class ProductController extends Controller
     {
         $productDto = $this->productService->getProductById($product->id);
 
-        return Inertia::render('Products/Show', [
+        return Inertia::render('products/show', [
             'product' => $productDto,
             'can' => [
                 'edit' => auth()->user()->can('update', $product),
@@ -136,7 +141,7 @@ class ProductController extends Controller
         $categoryRepo = app(\App\Repositories\Eloquent\CategoryRepository::class);
         $categoryOptions = $categoryRepo->getForDropdown();
 
-        return Inertia::render('Products/Edit', [
+        return Inertia::render('products/edit', [
             'product' => $productDto,
             'categories' => $categoryOptions,
         ]);

@@ -38,14 +38,14 @@ class CategoryController extends Controller
         $perPage = $request->get('per_page', 15);
         $categories = $this->categoryService->getPaginatedCategories($perPage);
 
-        return Inertia::render('Categories/Index', [
+        return Inertia::render('categories/index', [
             'categories' => $categories,
             'filters' => $request->only(['per_page']),
             'can' => [
                 'create' => auth()->user()->can('create', Category::class),
-                'edit' => auth()->user()->can('update', Category::class),
-                'delete' => auth()->user()->can('delete', Category::class),
-                'manage' => auth()->user()->can('manageHierarchy', Category::class),
+                'edit' => auth()->user()->hasRole(['admin', 'store_manager']),
+                'delete' => auth()->user()->hasRole(['admin']),
+                'manage' => auth()->user()->hasRole(['admin', 'store_manager']),
             ]
         ]);
     }
@@ -57,7 +57,7 @@ class CategoryController extends Controller
     {
         $parentCategories = $this->categoryService->getCategoriesForDropdown();
 
-        return Inertia::render('Categories/Create', [
+        return Inertia::render('categories/create', [
             'parentCategories' => $parentCategories,
         ]);
     }
@@ -97,7 +97,7 @@ class CategoryController extends Controller
         $categoryDto = $this->categoryService->getCategoryById($category->id);
         $childCategories = $this->categoryService->getChildCategories($category->id);
 
-        return Inertia::render('Categories/Show', [
+        return Inertia::render('categories/show', [
             'category' => $categoryDto,
             'childCategories' => $childCategories,
             'can' => [
@@ -116,7 +116,7 @@ class CategoryController extends Controller
         $categoryDto = $this->categoryService->getCategoryById($category->id);
         $parentCategories = $this->categoryService->getCategoriesForDropdown($category->id);
 
-        return Inertia::render('Categories/Edit', [
+        return Inertia::render('categories/edit', [
             'category' => $categoryDto,
             'parentCategories' => $parentCategories,
         ]);

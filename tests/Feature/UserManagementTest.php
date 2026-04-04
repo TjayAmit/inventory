@@ -6,7 +6,7 @@ use Tests\Concerns\HasRolesAndPermissions;
 
 uses(HasRolesAndPermissions::class);
 
-test('admin can view users list', function () {
+it('admin can view users list', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -18,7 +18,7 @@ test('admin can view users list', function () {
     // Just check that the response is successful - the Inertia rendering issue is frontend-only
 });
 
-test('non_admin cannot view users list', function () {
+it('non_admin cannot view users list', function () {
     $this->setUpRolesAndPermissions();
     
     $cashier = User::factory()->create();
@@ -29,7 +29,7 @@ test('non_admin cannot view users list', function () {
     $response->assertStatus(403);
 });
 
-test('admin can create user', function () {
+it('admin can create user', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -50,7 +50,7 @@ test('admin can create user', function () {
     ]);
 });
 
-test('admin can edit user', function () {
+it('admin can edit user', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -76,7 +76,7 @@ test('admin can edit user', function () {
     $this->assertTrue($user->hasRole('store_manager'));
 });
 
-test('admin cannot delete admin user', function () {
+it('admin cannot delete admin user', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -90,7 +90,7 @@ test('admin cannot delete admin user', function () {
     ]);
 });
 
-test('store_manager can create users but not admin', function () {
+it('store_manager can create users but not admin', function () {
     $this->setUpRolesAndPermissions();
     
     $manager = User::factory()->create();
@@ -108,7 +108,7 @@ test('store_manager can create users but not admin', function () {
     $response->assertSessionHas('error');
 });
 
-test('user creation validation works', function () {
+it('user creation validation works', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();

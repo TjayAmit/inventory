@@ -2,15 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\User\CreateUserDTO;
+use App\DTOs\User\UpdateUserDTO;
+use App\DTOs\User\UserFiltersDTO;
 use App\Models\User;
+use App\Services\UserService;
+use App\Services\UserRoleService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
-use Spatie\Permission\Models\Role;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    protected UserService $userService;
+    protected UserRoleService $roleService;
+
+    public function __construct(UserService $userService, UserRoleService $roleService)
+    {
+        $this->userService = $userService;
+        $this->roleService = $roleService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -18,23 +30,24 @@ class UserController extends Controller
     {
         $this->authorize('view users');
 
-        $users = User::with('roles')
-            ->when($request->search, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-            })
-            ->when($request->role, function ($query, $role) {
-                $query->whereHas('roles', function ($q) use ($role) {
-                    $q->where('name', $role);
-                });
-            })
-            ->paginate(10)
-            ->withQueryString();
+        // Create filters DTO from request
+        $filters = new UserFiltersDTO(
+            search: $request->get('search'),
+            role: $request->get('role'),
+            perPage: $request->get('per_page', 10),
+            sortBy: $request->get('sort_by', 'created_at'),
+            sortDirection: $request->get('sort_direction', 'desc')
+        );
+
+        $users = $this->userService->getUsers($filters);
 
         return Inertia::render('users/index', [
             'users' => $users,
             'filters' => $request->only(['search', 'role']),
             'roles' => Role::all(),
+            'auth' => [
+                'user' => $request->user()->load('roles'),
+            ],
         ]);
     }
 
@@ -45,8 +58,11 @@ class UserController extends Controller
     {
         $this->authorize('create users');
 
-        return Inertia::render('Users/Create', [
+        $availableRoles = $this->roleService->getAvailableRolesForUser(request()->user());
+
+        return Inertia::render('users/create', [
             'roles' => Role::all(),
+            'availableRoles' => $availableRoles,
         ]);
     }
 
@@ -57,29 +73,47 @@ class UserController extends Controller
     {
         $this->authorize('create users');
 
+        // Validate request first
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'roles' => ['required', 'array', 'min:1'],
-            'roles.*' => ['string', 'exists:roles,name'],
+            'roles.*' => ['required', 'string', 'exists:roles,name'],
         ]);
 
-        // Prevent non-admin users from creating admin users
-        if (!$request->user()->hasRole('admin') && in_array('admin', $validated['roles'])) {
-            return back()->with('error', 'Only administrators can create admin users.');
+        try {
+            // Create DTO
+            $dto = new CreateUserDTO(
+                name: $validated['name'],
+                email: $validated['email'],
+                password: $validated['password'],
+                passwordConfirmation: $request->input('password_confirmation'),
+                roles: $validated['roles']
+            );
+
+            $this->userService->createUser($dto);
+
+            return redirect()->route('users.index')
+                ->with('success', 'User created successfully.');
+
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors([
+                'roles' => $e->getMessage(),
+            ])->withInput();
+        } catch (\Exception $e) {
+            // Log the actual error for debugging
+            \Log::error('User creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return back()->withErrors([
+                'name' => 'Failed to create user. Please try again.',
+            ])->withInput();
         }
-
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        $user->syncRoles($validated['roles']);
-
-        return redirect()->route('users.index')
-            ->with('success', 'User created successfully.');
     }
 
     /**
@@ -91,7 +125,7 @@ class UserController extends Controller
 
         $user->load('roles', 'permissions');
 
-        return Inertia::render('Users/Show', [
+        return Inertia::render('users/show', [
             'user' => $user,
         ]);
     }
@@ -104,10 +138,12 @@ class UserController extends Controller
         $this->authorize('edit users');
 
         $user->load('roles');
+        $availableRoles = $this->roleService->getAvailableRolesForUser(request()->user());
 
-        return Inertia::render('Users/Edit', [
+        return Inertia::render('users/edit', [
             'user' => $user,
             'roles' => Role::all(),
+            'availableRoles' => $availableRoles,
         ]);
     }
 
@@ -118,29 +154,38 @@ class UserController extends Controller
     {
         $this->authorize('edit users');
 
+        // Validate request first
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'roles' => ['required', 'array', 'min:1'],
-            'roles.*' => ['string', 'exists:roles,name'],
+            'roles.*' => ['required', 'string', 'exists:roles,name'],
         ]);
 
-        $user->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-        ]);
+        try {
+            // Create DTO
+            $dto = new UpdateUserDTO(
+                name: $validated['name'],
+                email: $validated['email'],
+                password: $validated['password'] ?? null,
+                passwordConfirmation: $validated['password_confirmation'] ?? null,
+                roles: $validated['roles'],
+                userId: $user->id
+            );
 
-        if ($validated['password']) {
-            $user->update([
-                'password' => Hash::make($validated['password']),
-            ]);
+            $this->userService->updateUser($user->id, $dto);
+
+            return redirect()->route('users.index')
+                ->with('success', 'User updated successfully.');
+
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            return back()->withErrors([
+                'name' => 'Failed to update user. Please try again.',
+            ])->withInput();
         }
-
-        $user->syncRoles($validated['roles']);
-
-        return redirect()->route('users.index')
-            ->with('success', 'User updated successfully.');
     }
 
     /**
@@ -150,13 +195,20 @@ class UserController extends Controller
     {
         $this->authorize('delete users');
 
-        if ($user->hasRole('admin')) {
-            return back()->with('error', 'Cannot delete admin user.');
+        try {
+            $deleted = $this->userService->deleteUser($user->id);
+
+            if ($deleted) {
+                return redirect()->route('users.index')
+                    ->with('success', 'User deleted successfully.');
+            }
+
+            return back()->with('error', 'Failed to delete user.');
+
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to delete user. Please try again.');
         }
-
-        $user->delete();
-
-        return redirect()->route('users.index')
-            ->with('success', 'User deleted successfully.');
     }
 }

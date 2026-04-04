@@ -6,7 +6,7 @@ use Tests\Concerns\HasRolesAndPermissions;
 
 uses(HasRolesAndPermissions::class);
 
-test('admin user has all permissions', function () {
+it('admin user has all permissions', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -19,7 +19,7 @@ test('admin user has all permissions', function () {
     expect($admin->can('delete users'))->toBeTrue();
 });
 
-test('cashier user has limited permissions', function () {
+it('cashier user has limited permissions', function () {
     $this->setUpRolesAndPermissions();
     
     $cashier = User::factory()->create();
@@ -34,7 +34,7 @@ test('cashier user has limited permissions', function () {
     expect($cashier->can('create sales'))->toBeTrue();
 });
 
-test('store manager user has appropriate permissions', function () {
+it('store manager user has appropriate permissions', function () {
     $this->setUpRolesAndPermissions();
     
     $manager = User::factory()->create();
@@ -49,7 +49,7 @@ test('store manager user has appropriate permissions', function () {
     expect($manager->can('create sales'))->toBeTrue();
 });
 
-test('warehouse staff user has appropriate permissions', function () {
+it('warehouse staff user has appropriate permissions', function () {
     $this->setUpRolesAndPermissions();
     
     $warehouse = User::factory()->create();
@@ -65,7 +65,7 @@ test('warehouse staff user has appropriate permissions', function () {
     expect($warehouse->can('receive stock'))->toBeTrue();
 });
 
-test('user policy works correctly', function () {
+it('user policy works correctly', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -89,7 +89,7 @@ test('user policy works correctly', function () {
     expect($manager->can('view', $cashier))->toBeTrue();
     expect($manager->can('create', User::class))->toBeTrue();
     expect($manager->can('update', $cashier))->toBeTrue();
-    expect($manager->can('delete', $cashier))->toBeTrue();
+    expect($manager->can('delete', $cashier))->toBeFalse();
 
     // Test cashier cannot manage users
     expect($cashier->can('viewAny', User::class))->toBeFalse();

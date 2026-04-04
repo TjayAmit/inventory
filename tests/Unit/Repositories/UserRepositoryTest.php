@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Repositories\Eloquent\UserRepository;
 use Spatie\Permission\Models\Role;
 
-test('UserRepository can create user', function () {
+it('UserRepository can create user', function () {
     $repository = new UserRepository(new User());
     
     $dto = new CreateUserDTO(
@@ -26,7 +26,7 @@ test('UserRepository can create user', function () {
     expect($user->hasRole('cashier'))->toBeTrue();
 });
 
-test('UserRepository can find user by ID', function () {
+it('UserRepository can find user by ID', function () {
     $user = User::factory()->create();
     $repository = new UserRepository(new User());
 
@@ -37,7 +37,7 @@ test('UserRepository can find user by ID', function () {
     expect($foundUser->name)->toBe($user->name);
 });
 
-test('UserRepository can find user by email', function () {
+it('UserRepository can find user by email', function () {
     $user = User::factory()->create(['email' => 'test@example.com']);
     $repository = new UserRepository(new User());
 
@@ -47,7 +47,7 @@ test('UserRepository can find user by email', function () {
     expect($foundUser->id)->toBe($user->id);
 });
 
-test('UserRepository can update user', function () {
+it('UserRepository can update user', function () {
     $user = User::factory()->create();
     $repository = new UserRepository(new User());
 
@@ -65,7 +65,7 @@ test('UserRepository can update user', function () {
     expect($updatedUser->hasRole('store_manager'))->toBeTrue();
 });
 
-test('UserRepository can delete user', function () {
+it('UserRepository can delete user', function () {
     $user = User::factory()->create();
     $repository = new UserRepository(new User());
 
@@ -75,7 +75,7 @@ test('UserRepository can delete user', function () {
     expect(User::find($user->id))->toBeNull();
 });
 
-test('UserRepository can paginate with filters', function () {
+it('UserRepository can paginate with filters', function () {
     User::factory()->count(20)->create();
     $repository = new UserRepository(new User());
 
@@ -92,7 +92,7 @@ test('UserRepository can paginate with filters', function () {
     expect($paginatedUsers->items())->toHaveCount(5);
 });
 
-test('UserRepository can search users', function () {
+it('UserRepository can search users', function () {
     User::factory()->create(['name' => 'John Doe']);
     User::factory()->create(['name' => 'Jane Smith']);
     User::factory()->create(['email' => 'john@example.com']);
@@ -104,7 +104,7 @@ test('UserRepository can search users', function () {
     expect($results)->toHaveCount(2);
 });
 
-test('UserRepository can get users by role', function () {
+it('UserRepository can get users by role', function () {
     $cashierRole = Role::findByName('cashier');
     $adminRole = Role::findByName('admin');
 
@@ -122,7 +122,7 @@ test('UserRepository can get users by role', function () {
     });
 });
 
-test('UserRepository checks email existence', function () {
+it('UserRepository checks email existence', function () {
     User::factory()->create(['email' => 'test@example.com']);
     $repository = new UserRepository(new User());
 
@@ -130,7 +130,7 @@ test('UserRepository checks email existence', function () {
     expect($repository->emailExists('nonexistent@example.com'))->toBeFalse();
 });
 
-test('UserRepository checks email existence with exclusion', function () {
+it('UserRepository checks email existence with exclusion', function () {
     $user = User::factory()->create(['email' => 'test@example.com']);
     $repository = new UserRepository(new User());
 
@@ -138,7 +138,7 @@ test('UserRepository checks email existence with exclusion', function () {
     expect($repository->emailExists('test@example.com'))->toBeTrue();
 });
 
-test('UserRepository gets user count by role', function () {
+it('UserRepository gets user count by role', function () {
     $cashierRole = Role::findByName('cashier');
     
     User::factory()->count(3)->create()->each(function ($user) use ($cashierRole) {

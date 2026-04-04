@@ -1,8 +1,8 @@
-# Philippine Convenience Store Inventory System - Complete Project Plan
+# Convenience Store Inventory System - Complete Project Plan
 
 ## Project Overview
 
-**Target**: Single convenience store inventory management system for Philippine market  
+**Target**: Single convenience store inventory management system  
 **Tech Stack**: Laravel 13, Inertia.js, React, MySQL, Spatie Permissions  
 **Key Features**: User roles, barcode scanning, sales transactions, stock alerts  
 **Project Start Date**: April 3, 2026  

@@ -10,7 +10,7 @@ use App\Services\UserRoleService;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Support\Facades\Log;
 
-test('UserService can create user', function () {
+it('UserService can create user', function () {
     $userRepository = mock(UserRepositoryInterface::class);
     $authManager = mock(AuthManager::class);
     $roleService = mock(UserRoleService::class);
@@ -35,7 +35,7 @@ test('UserService can create user', function () {
     expect($result)->not->toBeNull();
 });
 
-test('UserService prevents non-admin from creating admin user', function () {
+it('UserService prevents non-admin from creating admin user', function () {
     $userRepository = mock(UserRepositoryInterface::class);
     $authManager = mock(AuthManager::class);
     $roleService = mock(UserRoleService::class);
@@ -60,7 +60,7 @@ test('UserService prevents non-admin from creating admin user', function () {
         ->toThrow(\Illuminate\Auth\Access\AuthorizationException::class);
 });
 
-test('UserService can update user', function () {
+it('UserService can update user', function () {
     $userRepository = mock(UserRepositoryInterface::class);
     $authManager = mock(AuthManager::class);
     $roleService = mock(UserRoleService::class);
@@ -85,7 +85,7 @@ test('UserService can update user', function () {
     expect($result)->not->toBeNull();
 });
 
-test('UserService can delete user', function () {
+it('UserService can delete user', function () {
     $userRepository = mock(UserRepositoryInterface::class);
     $authManager = mock(AuthManager::class);
     $roleService = mock(UserRoleService::class);
@@ -102,7 +102,7 @@ test('UserService can delete user', function () {
     expect($result)->toBeTrue();
 });
 
-test('UserService prevents deleting admin users', function () {
+it('UserService prevents deleting admin users', function () {
     $userRepository = mock(UserRepositoryInterface::class);
     $authManager = mock(AuthManager::class);
     $roleService = mock(UserRoleService::class);
@@ -122,7 +122,7 @@ test('UserService prevents deleting admin users', function () {
         ->toThrow(\Illuminate\Auth\Access\AuthorizationException::class);
 });
 
-test('UserService can get users with filters', function () {
+it('UserService can get users with filters', function () {
     $userRepository = mock(UserRepositoryInterface::class);
     $authManager = mock(AuthManager::class);
     $roleService = mock(UserRoleService::class);
@@ -142,7 +142,7 @@ test('UserService can get users with filters', function () {
     expect($result)->toBe($mockPaginatedUsers);
 });
 
-test('UserService can get user by ID', function () {
+it('UserService can get user by ID', function () {
     $userRepository = mock(UserRepositoryInterface::class);
     $authManager = mock(AuthManager::class);
     $roleService = mock(UserRoleService::class);
@@ -157,7 +157,7 @@ test('UserService can get user by ID', function () {
     expect($result)->not->BeNull();
 });
 
-test('UserService returns null for non-existent user', function () {
+it('UserService returns null for non-existent user', function () {
     $userRepository = mock(UserRepositoryInterface::class);
     $authManager = mock(AuthManager::class);
     $roleService = mock(UserRoleService::class);
@@ -171,7 +171,7 @@ test('UserService returns null for non-existent user', function () {
     expect($result)->toBeNull();
 });
 
-test('UserService can search users', function () {
+it('UserService can search users', function () {
     $userRepository = mock(UserRepositoryInterface::class);
     $authManager = mock(AuthManager::class);
     $roleService = mock(UserRoleService::class);
@@ -187,7 +187,7 @@ test('UserService can search users', function () {
     expect(count($result))->toBe(1);
 });
 
-test('UserService can get users by role', function () {
+it('UserService can get users by role', function () {
     $userRepository = mock(UserRepositoryInterface::class);
     $authManager = mock(AuthManager::class);
     $roleService = mock(UserRoleService::class);
@@ -203,7 +203,7 @@ test('UserService can get users by role', function () {
     expect(count($result))->toBe(1);
 });
 
-test('UserService can get user statistics', function () {
+it('UserService can get user statistics', function () {
     $userRepository = mock(UserRepositoryInterface::class);
     $authManager = mock(AuthManager::class);
     $roleService = mock(UserRoleService::class);

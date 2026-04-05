@@ -11,7 +11,7 @@ abstract class BaseDataTransferObject
     /**
      * Validate the DTO data.
      */
-    abstract protected function validate(): void;
+    abstract public function validate(): null;
 
     /**
      * Get the validation rules for the DTO.
@@ -55,7 +55,7 @@ abstract class BaseDataTransferObject
     }
 
     /**
-     * Convert DTO to array.
+     * Convert DTO to array with snake_case keys.
      */
     public function toArray(): array
     {
@@ -64,7 +64,9 @@ abstract class BaseDataTransferObject
 
         $data = [];
         foreach ($properties as $property) {
-            $data[$property->getName()] = $property->getValue($this);
+            // Convert camelCase property name to snake_case
+            $snakeKey = strtolower(preg_replace('/[A-Z]/', '_$0', $property->getName()));
+            $data[$snakeKey] = $property->getValue($this);
         }
 
         return $data;
@@ -83,7 +85,14 @@ abstract class BaseDataTransferObject
      */
     public static function fromArray(array $data): static
     {
-        return new static(...$data);
+        // Convert snake_case keys to camelCase to match constructor parameters
+        $convertedData = [];
+        foreach ($data as $key => $value) {
+            $camelKey = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $key))));
+            $convertedData[$camelKey] = $value;
+        }
+        
+        return new static(...$convertedData);
     }
 
     /**

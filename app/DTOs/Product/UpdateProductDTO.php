@@ -31,11 +31,11 @@ class UpdateProductDTO extends BaseDataTransferObject
         // Skip validation - controller handles it
     }
 
-    protected function validate(): void
+    public function validate(): null
     {
         // Skip validation in unit tests - let the controller handle validation
         if ($this->isUnitTest()) {
-            return;
+            return null;
         }
         
         $data = $this->toArray();
@@ -44,6 +44,8 @@ class UpdateProductDTO extends BaseDataTransferObject
 
         // Additional business logic validation
         $this->validateBusinessRules($validated);
+        
+        return null;
     }
 
     /**
@@ -55,39 +57,39 @@ class UpdateProductDTO extends BaseDataTransferObject
                (function_exists('app') && app()->bound('app') && app()->environment('testing'));
     }
 
-    protected function rules(): array
+    public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:200'],
-            'productCode' => ['required', 'string', 'max:50', Rule::unique('products', 'product_code')->ignore($this->productId)],
+            'product_code' => ['required', 'string', 'max:50', Rule::unique('products', 'product_code')->ignore($this->productId)],
             'barcode' => ['nullable', 'string', 'size:13', 'regex:/^\d{13}$/', Rule::unique('products', 'barcode')->ignore($this->productId)],
             'description' => ['nullable', 'string', 'max:2000'],
             'price' => ['required', 'numeric', 'min:0.01', 'max:999999.99'],
-            'costPrice' => ['nullable', 'numeric', 'min:0.01', 'max:999999.99'],
-            'categoryId' => ['nullable', 'integer', 'exists:categories,id'],
-            'isActive' => ['boolean'],
-            'isTaxable' => ['boolean'],
+            'cost_price' => ['nullable', 'numeric', 'min:0.01', 'max:999999.99'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'is_active' => ['boolean'],
+            'is_taxable' => ['boolean'],
             'unit' => ['nullable', 'string', 'max:20'],
             'weight' => ['nullable', 'numeric', 'min:0', 'max:999999.999'],
             'volume' => ['nullable', 'numeric', 'min:0', 'max:999999.999'],
             'brand' => ['nullable', 'string', 'max:100'],
             'manufacturer' => ['nullable', 'string', 'max:100'],
             'supplier' => ['nullable', 'string', 'max:100'],
-            'reorderPoint' => ['nullable', 'integer', 'min:0', 'max:1000000'],
-            'maxStock' => ['nullable', 'integer', 'min:1', 'max:1000000'],
+            'reorder_point' => ['nullable', 'integer', 'min:0', 'max:1000000'],
+            'max_stock' => ['nullable', 'integer', 'min:1', 'max:1000000'],
             'notes' => ['nullable', 'string', 'max:2000'],
-            'productId' => ['required', 'integer', 'exists:products,id'],
+            'product_id' => ['required', 'integer', 'exists:products,id'],
         ];
     }
 
-    protected function messages(): array
+    public function messages(): array
     {
         return [
             'name.required' => 'The product name is required.',
             'name.max' => 'The product name may not be greater than 200 characters.',
-            'productCode.required' => 'The product code is required.',
-            'productCode.max' => 'The product code may not be greater than 50 characters.',
-            'productCode.unique' => 'A product with this code already exists.',
+            'product_code.required' => 'The product code is required.',
+            'product_code.max' => 'The product code may not be greater than 50 characters.',
+            'product_code.unique' => 'A product with this code already exists.',
             'barcode.size' => 'The barcode must be exactly 13 characters.',
             'barcode.regex' => 'The barcode must contain only digits.',
             'barcode.unique' => 'A product with this barcode already exists.',
@@ -95,9 +97,9 @@ class UpdateProductDTO extends BaseDataTransferObject
             'price.required' => 'The price is required.',
             'price.min' => 'The price must be at least 0.01.',
             'price.max' => 'The price may not be greater than 999,999.99.',
-            'costPrice.min' => 'The cost price must be at least 0.01.',
-            'costPrice.max' => 'The cost price may not be greater than 999,999.99.',
-            'categoryId.exists' => 'The selected category does not exist.',
+            'cost_price.min' => 'The cost price must be at least 0.01.',
+            'cost_price.max' => 'The cost price may not be greater than 999,999.99.',
+            'category_id.exists' => 'The selected category does not exist.',
             'unit.max' => 'The unit may not be greater than 20 characters.',
             'weight.min' => 'The weight must be at least 0.',
             'weight.max' => 'The weight may not be greater than 999,999.999.',
@@ -106,13 +108,13 @@ class UpdateProductDTO extends BaseDataTransferObject
             'brand.max' => 'The brand may not be greater than 100 characters.',
             'manufacturer.max' => 'The manufacturer may not be greater than 100 characters.',
             'supplier.max' => 'The supplier may not be greater than 100 characters.',
-            'reorderPoint.min' => 'The reorder point must be at least 0.',
-            'reorderPoint.max' => 'The reorder point may not be greater than 1,000,000.',
-            'maxStock.min' => 'The maximum stock must be at least 1.',
-            'maxStock.max' => 'The maximum stock may not be greater than 1,000,000.',
+            'reorder_point.min' => 'The reorder point must be at least 0.',
+            'reorder_point.max' => 'The reorder point may not be greater than 1,000,000.',
+            'max_stock.min' => 'The maximum stock must be at least 1.',
+            'max_stock.max' => 'The maximum stock may not be greater than 1,000,000.',
             'notes.max' => 'The notes may not be greater than 2000 characters.',
-            'productId.required' => 'Product ID is required.',
-            'productId.exists' => 'The product being updated does not exist.',
+            'product_id.required' => 'Product ID is required.',
+            'product_id.exists' => 'The product being updated does not exist.',
         ];
     }
 
@@ -127,26 +129,26 @@ class UpdateProductDTO extends BaseDataTransferObject
         }
 
         // Business rule: Cost price should be less than selling price
-        if ($data['costPrice'] && $data['costPrice'] >= $data['price']) {
+        if (!empty($data['cost_price']) && $data['cost_price'] >= $data['price']) {
             throw new \Illuminate\Validation\ValidationException(
                 validator()->make([], []),
-                ['costPrice' => 'Cost price should be less than selling price.']
+                ['cost_price' => 'Cost price should be less than selling price.']
             );
         }
 
         // Business rule: If both reorder point and max stock are provided, reorder point should be less than max stock
-        if ($data['reorderPoint'] !== null && $data['maxStock'] !== null && $data['reorderPoint'] >= $data['maxStock']) {
+        if (!empty($data['reorder_point']) && !empty($data['max_stock']) && $data['reorder_point'] >= $data['max_stock']) {
             throw new \Illuminate\Validation\ValidationException(
                 validator()->make([], []),
-                ['reorderPoint' => 'Reorder point should be less than maximum stock.']
+                ['reorder_point' => 'Reorder point should be less than maximum stock.']
             );
         }
 
         // Additional business rule: Cannot deactivate product if it has active stock
-        if ($data['isActive'] === false && $this->hasActiveStock()) {
+        if (isset($data['is_active']) && $data['is_active'] === false && $this->hasActiveStock()) {
             throw new \Illuminate\Validation\ValidationException(
                 validator()->make([], []),
-                ['isActive' => 'Cannot deactivate a product that has active stock.']
+                ['is_active' => 'Cannot deactivate a product that has active stock.']
             );
         }
     }

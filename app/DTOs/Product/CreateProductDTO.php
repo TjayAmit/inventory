@@ -30,11 +30,11 @@ class CreateProductDTO extends BaseDataTransferObject
         // Skip validation - controller handles it
     }
 
-    protected function validate(): void
+    public function validate(): null
     {
         // Skip validation in unit tests - let the controller handle validation
         if ($this->isUnitTest()) {
-            return;
+            return null;
         }
         
         $data = $this->toArray();
@@ -43,6 +43,8 @@ class CreateProductDTO extends BaseDataTransferObject
 
         // Additional business logic validation
         $this->validateBusinessRules($validated);
+        
+        return null;
     }
 
     /**
@@ -54,38 +56,38 @@ class CreateProductDTO extends BaseDataTransferObject
                (function_exists('app') && app()->bound('app') && app()->environment('testing'));
     }
 
-    protected function rules(): array
+    public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:200'],
-            'productCode' => ['required', 'string', 'max:50', 'unique:products,product_code'],
+            'product_code' => ['required', 'string', 'max:50', 'unique:products,product_code'],
             'barcode' => ['nullable', 'string', 'size:13', 'regex:/^\d{13}$/', 'unique:products,barcode'],
             'description' => ['nullable', 'string', 'max:2000'],
             'price' => ['required', 'numeric', 'min:0.01', 'max:999999.99'],
-            'costPrice' => ['nullable', 'numeric', 'min:0.01', 'max:999999.99'],
-            'categoryId' => ['nullable', 'integer', 'exists:categories,id'],
-            'isActive' => ['boolean'],
-            'isTaxable' => ['boolean'],
+            'cost_price' => ['nullable', 'numeric', 'min:0.01', 'max:999999.99'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'is_active' => ['boolean'],
+            'is_taxable' => ['boolean'],
             'unit' => ['required', 'string', 'max:20'],
             'weight' => ['nullable', 'numeric', 'min:0', 'max:999999.999'],
             'volume' => ['nullable', 'numeric', 'min:0', 'max:999999.999'],
             'brand' => ['nullable', 'string', 'max:100'],
             'manufacturer' => ['nullable', 'string', 'max:100'],
             'supplier' => ['nullable', 'string', 'max:100'],
-            'reorderPoint' => ['required', 'integer', 'min:0', 'max:1000000'],
-            'maxStock' => ['required', 'integer', 'min:1', 'max:1000000'],
+            'reorder_point' => ['required', 'integer', 'min:0', 'max:1000000'],
+            'max_stock' => ['required', 'integer', 'min:1', 'max:1000000'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }
 
-    protected function messages(): array
+    public function messages(): array
     {
         return [
             'name.required' => 'The product name is required.',
             'name.max' => 'The product name may not be greater than 200 characters.',
-            'productCode.required' => 'The product code is required.',
-            'productCode.max' => 'The product code may not be greater than 50 characters.',
-            'productCode.unique' => 'A product with this code already exists.',
+            'product_code.required' => 'The product code is required.',
+            'product_code.max' => 'The product code may not be greater than 50 characters.',
+            'product_code.unique' => 'A product with this code already exists.',
             'barcode.size' => 'The barcode must be exactly 13 characters.',
             'barcode.regex' => 'The barcode must contain only digits.',
             'barcode.unique' => 'A product with this barcode already exists.',
@@ -93,9 +95,9 @@ class CreateProductDTO extends BaseDataTransferObject
             'price.required' => 'The price is required.',
             'price.min' => 'The price must be at least 0.01.',
             'price.max' => 'The price may not be greater than 999,999.99.',
-            'costPrice.min' => 'The cost price must be at least 0.01.',
-            'costPrice.max' => 'The cost price may not be greater than 999,999.99.',
-            'categoryId.exists' => 'The selected category does not exist.',
+            'cost_price.min' => 'The cost price must be at least 0.01.',
+            'cost_price.max' => 'The cost price may not be greater than 999,999.99.',
+            'category_id.exists' => 'The selected category does not exist.',
             'unit.required' => 'The unit is required.',
             'unit.max' => 'The unit may not be greater than 20 characters.',
             'weight.min' => 'The weight must be at least 0.',
@@ -105,12 +107,12 @@ class CreateProductDTO extends BaseDataTransferObject
             'brand.max' => 'The brand may not be greater than 100 characters.',
             'manufacturer.max' => 'The manufacturer may not be greater than 100 characters.',
             'supplier.max' => 'The supplier may not be greater than 100 characters.',
-            'reorderPoint.required' => 'The reorder point is required.',
-            'reorderPoint.min' => 'The reorder point must be at least 0.',
-            'reorderPoint.max' => 'The reorder point may not be greater than 1,000,000.',
-            'maxStock.required' => 'The maximum stock is required.',
-            'maxStock.min' => 'The maximum stock must be at least 1.',
-            'maxStock.max' => 'The maximum stock may not be greater than 1,000,000.',
+            'reorder_point.required' => 'The reorder point is required.',
+            'reorder_point.min' => 'The reorder point must be at least 0.',
+            'reorder_point.max' => 'The reorder point may not be greater than 1,000,000.',
+            'max_stock.required' => 'The maximum stock is required.',
+            'max_stock.min' => 'The maximum stock must be at least 1.',
+            'max_stock.max' => 'The maximum stock may not be greater than 1,000,000.',
             'notes.max' => 'The notes may not be greater than 2000 characters.',
         ];
     }
@@ -126,18 +128,18 @@ class CreateProductDTO extends BaseDataTransferObject
         }
 
         // Business rule: Cost price should be less than selling price
-        if ($data['costPrice'] && $data['costPrice'] >= $data['price']) {
+        if (!empty($data['cost_price']) && $data['cost_price'] >= $data['price']) {
             throw new \Illuminate\Validation\ValidationException(
                 validator()->make([], []),
-                ['costPrice' => 'Cost price should be less than selling price.']
+                ['cost_price' => 'Cost price should be less than selling price.']
             );
         }
 
         // Business rule: Reorder point should be less than max stock
-        if ($data['reorderPoint'] >= $data['maxStock']) {
+        if ($data['reorder_point'] >= $data['max_stock']) {
             throw new \Illuminate\Validation\ValidationException(
                 validator()->make([], []),
-                ['reorderPoint' => 'Reorder point should be less than maximum stock.']
+                ['reorder_point' => 'Reorder point should be less than maximum stock.']
             );
         }
     }

@@ -4,10 +4,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Services\ProductService;
 use App\Repositories\Contracts\ProductRepositoryInterface;
-use Tests\Unit\Services\ServiceTestCase;
-use Mockery;
-
-uses(ServiceTestCase::class);
+use Mockery\Adapter\Phpunit\Mockery;
 
 beforeEach(function () {
     $this->repository = Mockery::mock(ProductRepositoryInterface::class);

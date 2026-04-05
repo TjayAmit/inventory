@@ -18,7 +18,7 @@ class UserResponseDTO extends BaseDataTransferObject
         // Response DTOs don't need validation as they're created from trusted data
     }
 
-    protected function validate(): void
+    public function validate(): null
     {
         // No validation needed for response DTOs
     }

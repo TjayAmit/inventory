@@ -51,9 +51,9 @@ class ProductController extends Controller
             'categories' => $categoryOptions,
             'can' => [
                 'create' => auth()->user()->can('create', Product::class),
-                'edit' => auth()->user()->can('update', Product::class),
-                'delete' => auth()->user()->can('delete', Product::class),
-                'manage' => auth()->user()->can('managePricing', Product::class),
+                'edit' => auth()->user()->can('create', Product::class), // Use create as proxy for edit permission
+                'delete' => auth()->user()->can('create', Product::class), // Use create as proxy for delete permission
+                'manage' => auth()->user()->can('create', Product::class), // Use create as proxy for manage permission
             ]
         ]);
     }

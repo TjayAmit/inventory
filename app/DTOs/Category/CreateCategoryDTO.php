@@ -17,61 +17,52 @@ class CreateCategoryDTO extends BaseDataTransferObject
         // Skip validation - controller handles it
     }
 
-    protected function validate(): void
+    public function validate(): null
     {
-        // Skip validation in unit tests - let the controller handle validation
-        if ($this->isUnitTest()) {
-            return;
-        }
-        
         $data = $this->toArray();
         
         $validated = $this->performValidation($data);
 
         // Additional business logic validation
         $this->validateBusinessRules($validated);
+        
+        return null;
     }
 
-    /**
-     * Check if we're running in a unit test.
-     */
-    private function isUnitTest(): bool
-    {
-        return defined('PHPUNIT_RUNNING') || 
-               (function_exists('app') && app()->bound('app') && app()->environment('testing'));
-    }
-
-    protected function rules(): array
+    public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100', 'unique:categories,name'],
+            'name' => ['required', 'string', 'max:200', 'unique:categories,name'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'parentId' => ['nullable', 'integer', 'exists:categories,id'],
-            'isActive' => ['boolean'],
-            'sortOrder' => ['integer', 'min:0', 'max:9999'],
+            'parent_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'is_active' => ['boolean'],
+            'sort_order' => ['integer', 'min:0', 'max:1000000'],
         ];
     }
 
-    protected function messages(): array
+    public function messages(): array
     {
         return [
             'name.required' => 'The category name is required.',
-            'name.max' => 'The category name may not be greater than 100 characters.',
+            'name.max' => 'The category name may not be greater than 200 characters.',
             'name.unique' => 'A category with this name already exists.',
             'description.max' => 'The description may not be greater than 1000 characters.',
-            'parentId.exists' => 'The selected parent category does not exist.',
-            'sortOrder.min' => 'The sort order must be at least 0.',
-            'sortOrder.max' => 'The sort order may not be greater than 9999.',
+            'parent_id.integer' => 'The parent ID must be an integer.',
+            'parent_id.exists' => 'The selected parent category does not exist.',
+            'is_active.boolean' => 'The active status must be a boolean.',
+            'sort_order.integer' => 'The sort order must be an integer.',
+            'sort_order.min' => 'The sort order must be at least 0.',
+            'sort_order.max' => 'The sort order may not be greater than 1000000.',
         ];
     }
 
     protected function validateBusinessRules(array $data): void
     {
         // Prevent creating a category as its own parent (circular reference)
-        if ($data['parentId'] && $this->wouldCreateCircularReference($data['parentId'])) {
+        if (!empty($data['parent_id']) && $this->wouldCreateCircularReference($data['parent_id'])) {
             throw new \Illuminate\Validation\ValidationException(
                 validator()->make([], []),
-                ['parentId' => 'Cannot create circular category reference.']
+                ['parent_id' => 'Cannot create circular category reference.']
             );
         }
     }

@@ -23,7 +23,7 @@ class CategoryResponseDTO extends BaseDataTransferObject
         // No validation needed for response DTO
     }
 
-    protected function validate(): void
+    public function validate(): null
     {
         // Response DTOs don't need validation
     }
@@ -54,7 +54,7 @@ class CategoryResponseDTO extends BaseDataTransferObject
         }
 
         if ($includeProductsCount) {
-            $productsCount = $category->products()->count();
+            $productsCount = $category->products_count ?? $category->products()->count();
         }
 
         if ($category->relationLoaded('parent') && $category->parent) {
@@ -234,18 +234,18 @@ class CategoryResponseDTO extends BaseDataTransferObject
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'parentId' => $this->parentId,
-            'parentName' => $this->parentName,
-            'isActive' => $this->isActive,
-            'sortOrder' => $this->sortOrder,
-            'createdAt' => $this->createdAt,
-            'updatedAt' => $this->updatedAt,
+            'parent_id' => $this->parentId,
+            'parent_name' => $this->parentName,
+            'is_active' => $this->isActive,
+            'sort_order' => $this->sortOrder,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
             'children' => $this->children,
-            'productsCount' => $this->productsCount,
-            'fullPath' => $this->fullPath,
-            'isRoot' => $this->isRootCategory(),
-            'hasChildren' => $this->hasChildren(),
-            'hasProducts' => $this->hasProducts(),
+            'products_count' => $this->productsCount,
+            'full_path' => $this->fullPath,
+            'is_root' => $this->isRootCategory(),
+            'has_children' => $this->hasChildren(),
+            'has_products' => $this->hasProducts(),
         ];
     }
 }

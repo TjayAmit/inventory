@@ -8,83 +8,71 @@ use Illuminate\Validation\Rule;
 class UpdateCategoryDTO extends BaseDataTransferObject
 {
     public function __construct(
+        public readonly int $categoryId, // The ID of category being updated
         public readonly string $name,
         public readonly ?string $description = null,
         public readonly ?int $parentId = null,
         public readonly ?bool $isActive = null,
-        public readonly ?int $sortOrder = null,
-        public readonly int $categoryId // The ID of the category being updated
+        public readonly ?int $sortOrder = null
     ) {
         // Skip validation - controller handles it
     }
 
-    protected function validate(): void
+    public function validate(): null
     {
-        // Skip validation in unit tests - let the controller handle validation
-        if ($this->isUnitTest()) {
-            return;
-        }
-        
         $data = $this->toArray();
         
         $validated = $this->performValidation($data);
 
         // Additional business logic validation
         $this->validateBusinessRules($validated);
+        
+        return null;
     }
 
-    /**
-     * Check if we're running in a unit test.
-     */
-    private function isUnitTest(): bool
-    {
-        return defined('PHPUNIT_RUNNING') || 
-               (function_exists('app') && app()->bound('app') && app()->environment('testing'));
-    }
-
-    protected function rules(): array
+    public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:100', Rule::unique('categories', 'name')->ignore($this->categoryId)],
             'description' => ['nullable', 'string', 'max:1000'],
-            'parentId' => ['nullable', 'integer', 'exists:categories,id', Rule::notIn([$this->categoryId])],
-            'isActive' => ['boolean'],
-            'sortOrder' => ['nullable', 'integer', 'min:0', 'max:9999'],
-            'categoryId' => ['required', 'integer', 'exists:categories,id'],
+            'parent_id' => ['nullable', 'integer', 'exists:categories,id', Rule::notIn([$this->categoryId])],
+            'is_active' => ['boolean'],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
         ];
     }
 
-    protected function messages(): array
+    public function messages(): array
     {
         return [
             'name.required' => 'The category name is required.',
             'name.max' => 'The category name may not be greater than 100 characters.',
             'name.unique' => 'A category with this name already exists.',
             'description.max' => 'The description may not be greater than 1000 characters.',
-            'parentId.exists' => 'The selected parent category does not exist.',
-            'parentId.not_in' => 'A category cannot be its own parent.',
-            'sortOrder.min' => 'The sort order must be at least 0.',
-            'sortOrder.max' => 'The sort order may not be greater than 9999.',
-            'categoryId.required' => 'Category ID is required.',
-            'categoryId.exists' => 'The category being updated does not exist.',
+            'parent_id.exists' => 'The selected parent category does not exist.',
+            'parent_id.not_in' => 'A category cannot be its own parent.',
+            'sort_order.min' => 'The sort order must be at least 0.',
+            'sort_order.max' => 'The sort order may not be greater than 9999.',
+            'category_id.required' => 'Category ID is required.',
+            'category_id.exists' => 'The category being updated does not exist.',
         ];
     }
 
     protected function validateBusinessRules(array $data): void
     {
         // Prevent creating a category as its own parent (circular reference)
-        if ($data['parentId'] && $this->wouldCreateCircularReference($data['parentId'])) {
+        if (!empty($data['parent_id']) && $this->wouldCreateCircularReference($data['parent_id'])) {
             throw new \Illuminate\Validation\ValidationException(
                 validator()->make([], []),
-                ['parentId' => 'Cannot create circular category reference.']
+                ['parent_id' => 'Cannot create circular category reference.']
             );
         }
 
         // Additional business rule: Cannot deactivate a category that has active products
-        if ($data['isActive'] === false && $this->hasActiveProducts()) {
+        if (isset($data['is_active']) && $data['is_active'] === false && $this->hasActiveProducts()) {
             throw new \Illuminate\Validation\ValidationException(
                 validator()->make([], []),
-                ['isActive' => 'Cannot deactivate a category that has active products.']
+                ['is_active' => 'Cannot deactivate a category that has active products.']
             );
         }
     }

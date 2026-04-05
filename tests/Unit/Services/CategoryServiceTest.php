@@ -3,10 +3,7 @@
 use App\Models\Category;
 use App\Services\CategoryService;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
-use Tests\Unit\Services\ServiceTestCase;
-use Mockery;
-
-uses(ServiceTestCase::class);
+use Mockery\Adapter\Phpunit\Mockery;
 
 beforeEach(function () {
     $this->repository = Mockery::mock(CategoryRepositoryInterface::class);

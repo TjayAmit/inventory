@@ -39,7 +39,7 @@ class ProductResponseDTO extends BaseDataTransferObject
         // No validation needed for response DTO
     }
 
-    protected function validate(): void
+    public function validate(): null
     {
         // Response DTOs don't need validation
     }

@@ -25,7 +25,7 @@ test('can view products index', function () {
 
     $response->assertStatus(200);
     $response->assertInertia(function ($page) {
-        expect($page->component())->toBe('Products/Index');
+        expect($page->component())->toBe('products/index');
         expect($page->props('products'))->toHaveCount(5);
     });
 });
@@ -40,7 +40,7 @@ test('can view products index with filters', function () {
 
     $response->assertStatus(200);
     $response->assertInertia(function ($page) {
-        expect($page->component())->toBe('Products/Index');
+        expect($page->component())->toBe('products/index');
         expect($page->props('products'))->toHaveCount(3);
     });
 });
@@ -52,7 +52,7 @@ test('can create product', function () {
 
     $response->assertStatus(200);
     $response->assertInertia(function ($page) {
-        expect($page->component())->toBe('Products/Create');
+        expect($page->component())->toBe('products/create');
         expect($page->props('categories'))->not->toBeNull();
     });
 });
@@ -127,7 +127,7 @@ test('can show product', function () {
 
     $response->assertStatus(200);
     $response->assertInertia(function ($page) use ($product) {
-        expect($page->component())->toBe('Products/Show');
+        expect($page->component())->toBe('products/show');
         expect($page->props('product')->id)->toBe($product->id);
     });
 });
@@ -141,7 +141,7 @@ test('can edit product', function () {
 
     $response->assertStatus(200);
     $response->assertInertia(function ($page) use ($product) {
-        expect($page->component())->toBe('Products/Edit');
+        expect($page->component())->toBe('products/edit');
         expect($page->props('product')->id)->toBe($product->id);
         expect($page->props('categories'))->not->toBeNull();
     });

@@ -18,11 +18,11 @@ class CreateUserDTO extends BaseDataTransferObject
         // Skip validation - controller handles it
     }
 
-    protected function validate(): void
-{
+    public function validate(): null
+    {
     // Skip validation in unit tests - let the controller handle validation
     if ($this->isUnitTest()) {
-        return;
+        return null;
     }
     
     $data = $this->toArray();
@@ -31,9 +31,9 @@ class CreateUserDTO extends BaseDataTransferObject
 
     // Additional business logic validation
     $this->validateBusinessRules($validated);
-}
+    }
 
-/**
+    /**
      * Check if we're running in a unit test.
      */
     private function isUnitTest(): bool
@@ -42,7 +42,7 @@ class CreateUserDTO extends BaseDataTransferObject
                (function_exists('app') && app()->bound('app') && app()->environment('testing'));
     }
 
-    protected function rules(): array
+    public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -54,7 +54,7 @@ class CreateUserDTO extends BaseDataTransferObject
         ];
     }
 
-    protected function messages(): array
+    public function messages(): array
     {
         return [
             'name.required' => 'The name field is required.',

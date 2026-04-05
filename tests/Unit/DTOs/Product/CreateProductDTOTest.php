@@ -91,7 +91,7 @@ test('validation passes with valid data', function () {
         barcode: '1234567890128'
     );
 
-    expect(fn() => $dto->validate())->not->toThrow();
+    expect(fn() => $dto->validate())->not->toThrow(\Exception::class);
 });
 
 test('validation fails with empty name', function () {
@@ -509,7 +509,7 @@ test('can create product with valid EAN-13 barcode', function () {
     );
 
     expect($dto->getBarcode())->toBe('1234567890128');
-    expect(fn() => $dto->validate())->not->toThrow();
+    expect(fn() => $dto->validate())->not->toThrow(\Exception::class);
 });
 
 test('can create product with zero cost price', function () {
@@ -554,5 +554,5 @@ test('can create product with maximum allowed values', function () {
         notes: str_repeat('f', 2000) // Max notes length
     );
 
-    expect(fn() => $dto->validate())->not->toThrow();
+    expect(fn() => $dto->validate())->not->toThrow(\Exception::class);
 });

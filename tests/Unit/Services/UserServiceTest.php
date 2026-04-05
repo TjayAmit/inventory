@@ -12,9 +12,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
 use Mockery as m;
 use Tests\Concerns\HasRolesAndPermissions;
-use Tests\Unit\Services\ServiceTestCase;
 
-uses(ServiceTestCase::class);
 uses(HasRolesAndPermissions::class);
 
 beforeEach(function () {

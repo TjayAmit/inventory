@@ -19,27 +19,27 @@ class UpdateUserDTO extends BaseDataTransferObject
         // Skip validation - controller handles it
     }
 
-    protected function validate(): void
-{
-    // Skip validation in unit tests - let the controller handle validation
-    if ($this->isUnitTest()) {
-        return;
+    public function validate(): null
+    {
+        // Skip validation in unit tests - let the controller handle validation
+        if ($this->isUnitTest()) {
+            return null;
+        }
+        
+        $data = $this->toArray();
+        
+        // Add user ID to data for unique email validation
+        if ($this->userId) {
+            $data['user_id'] = $this->userId;
+        }
+
+        $validated = $this->performValidation($data);
+
+        // Additional business logic validation
+        $this->validateBusinessRules($validated);
     }
-    
-    $data = $this->toArray();
-    
-    // Add user ID to data for unique email validation
-    if ($this->userId) {
-        $data['user_id'] = $this->userId;
-    }
 
-    $validated = $this->performValidation($data);
-
-    // Additional business logic validation
-    $this->validateBusinessRules($validated);
-}
-
-/**
+    /**
      * Check if we're running in a unit test.
      */
     private function isUnitTest(): bool
@@ -48,7 +48,7 @@ class UpdateUserDTO extends BaseDataTransferObject
                (function_exists('app') && app()->bound('app') && app()->environment('testing'));
     }
 
-    protected function rules(): array
+    public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -66,7 +66,7 @@ class UpdateUserDTO extends BaseDataTransferObject
         ];
     }
 
-    protected function messages(): array
+    public function messages(): array
     {
         return [
             'name.required' => 'The name field is required.',

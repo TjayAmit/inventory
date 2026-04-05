@@ -283,6 +283,8 @@ class CategoryService
             name: $category->name,
             description: $category->description,
             parentId: $newParentId,
+            isActive: $category->is_active,
+            sortOrder: $category->sort_order,
             categoryId: $categoryId
         );
 
@@ -310,7 +312,9 @@ class CategoryService
         $dto = new UpdateCategoryDTO(
             name: $category->name,
             description: $category->description,
+            parentId: $category->parent_id,
             isActive: $newStatus,
+            sortOrder: $category->sort_order,
             categoryId: $id
         );
 

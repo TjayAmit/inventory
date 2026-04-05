@@ -25,7 +25,7 @@ class ProductFiltersDTO extends BaseDataTransferObject
         // No validation needed for filters DTO
     }
 
-    protected function validate(): void
+    public function validate(): null
     {
         // Filters DTOs don't need validation
     }

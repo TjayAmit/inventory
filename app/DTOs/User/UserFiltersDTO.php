@@ -16,10 +16,11 @@ class UserFiltersDTO extends BaseDataTransferObject
         $this->validate();
     }
 
-    protected function validate(): void
+    public function validate(): null
     {
         $data = $this->toArray();
         $this->performValidation($data);
+        return null;
     }
 
     protected function rules(): array

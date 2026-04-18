@@ -24,11 +24,11 @@ class ProductController extends Controller
     {
         $this->productService = $productService;
         $this->middleware('auth');
-        $this->middleware('permission:product.view')->only(['index', 'show']);
-        $this->middleware('permission:product.create')->only(['create', 'store']);
-        $this->middleware('permission:product.edit')->only(['edit', 'update']);
-        $this->middleware('permission:product.delete')->only(['destroy']);
-        $this->middleware('permission:product.manage')->only(['toggleStatus', 'generateBarcode']);
+        $this->middleware('permission:view products')->only(['index', 'show']);
+        $this->middleware('permission:create products')->only(['create', 'store']);
+        $this->middleware('permission:edit products')->only(['edit', 'update']);
+        $this->middleware('permission:delete products')->only(['destroy']);
+        $this->middleware('permission:manage products')->only(['toggleStatus', 'generateBarcode']);
     }
 
     /**

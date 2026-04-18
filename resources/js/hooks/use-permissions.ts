@@ -6,6 +6,8 @@ export function usePermissions() {
     const user = auth?.user;
     const permissions = auth?.permissions || [];
 
+
+    console.log(permissions);
     // Check if user is authenticated
     const isAuthenticated = !!user;
 

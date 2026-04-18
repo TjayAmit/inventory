@@ -23,11 +23,11 @@ class CategoryController extends Controller
     {
         $this->categoryService = $categoryService;
         $this->middleware('auth');
-        $this->middleware('permission:category.view')->only(['index', 'show']);
-        $this->middleware('permission:category.create')->only(['create', 'store']);
-        $this->middleware('permission:category.edit')->only(['edit', 'update']);
-        $this->middleware('permission:category.delete')->only(['destroy']);
-        $this->middleware('permission:category.manage')->only(['toggleStatus', 'updateSortOrder', 'move']);
+        $this->middleware('permission:view categories')->only(['index', 'show']);
+        $this->middleware('permission:create categories')->only(['create', 'store']);
+        $this->middleware('permission:edit categories')->only(['edit', 'update']);
+        $this->middleware('permission:delete categories')->only(['destroy']);
+        $this->middleware('permission:manage categories')->only(['toggleStatus', 'updateSortOrder', 'move']);
     }
 
     /**

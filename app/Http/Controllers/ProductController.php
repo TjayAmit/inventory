@@ -24,11 +24,11 @@ class ProductController extends Controller
     {
         $this->productService = $productService;
         $this->middleware('auth');
-        $this->middleware('permission:view products')->only(['index', 'show']);
-        $this->middleware('permission:create products')->only(['create', 'store']);
-        $this->middleware('permission:edit products')->only(['edit', 'update']);
-        $this->middleware('permission:delete products')->only(['destroy']);
-        $this->middleware('permission:manage products')->only(['toggleStatus', 'generateBarcode']);
+        $this->middleware('permission:product.view')->only(['index', 'show']);
+        $this->middleware('permission:product.create')->only(['create', 'store']);
+        $this->middleware('permission:product.edit')->only(['edit', 'update']);
+        $this->middleware('permission:product.delete')->only(['destroy']);
+        $this->middleware('permission:product.manage')->only(['toggleStatus', 'generateBarcode']);
     }
 
     /**
@@ -41,19 +41,14 @@ class ProductController extends Controller
         
         $products = $this->productService->getPaginatedProducts($filters, $perPage);
 
-        // Get categories for filter dropdown
-        $categoryRepo = app(\App\Repositories\Eloquent\CategoryRepository::class);
-        $categoryOptions = $categoryRepo->getForDropdown();
-
-        return Inertia::render('products/index', [
+        return Inertia::render('Products/Index', [
             'products' => $products,
             'filters' => $filters->toArray(),
-            'categories' => $categoryOptions,
             'can' => [
                 'create' => auth()->user()->can('create', Product::class),
-                'edit' => auth()->user()->can('create', Product::class), // Use create as proxy for edit permission
-                'delete' => auth()->user()->can('create', Product::class), // Use create as proxy for delete permission
-                'manage' => auth()->user()->can('create', Product::class), // Use create as proxy for manage permission
+                'edit' => auth()->user()->can('update', Product::class),
+                'delete' => auth()->user()->can('delete', Product::class),
+                'manage' => auth()->user()->can('managePricing', Product::class),
             ]
         ]);
     }
@@ -68,7 +63,7 @@ class ProductController extends Controller
         $categoryRepo = app(\App\Repositories\Eloquent\CategoryRepository::class);
         $categoryOptions = $categoryRepo->getForDropdown();
 
-        return Inertia::render('products/create', [
+        return Inertia::render('Products/Create', [
             'categories' => $categoryOptions,
         ]);
     }
@@ -120,7 +115,7 @@ class ProductController extends Controller
     {
         $productDto = $this->productService->getProductById($product->id);
 
-        return Inertia::render('products/show', [
+        return Inertia::render('Products/Show', [
             'product' => $productDto,
             'can' => [
                 'edit' => auth()->user()->can('update', $product),
@@ -141,7 +136,7 @@ class ProductController extends Controller
         $categoryRepo = app(\App\Repositories\Eloquent\CategoryRepository::class);
         $categoryOptions = $categoryRepo->getForDropdown();
 
-        return Inertia::render('products/edit', [
+        return Inertia::render('Products/Edit', [
             'product' => $productDto,
             'categories' => $categoryOptions,
         ]);

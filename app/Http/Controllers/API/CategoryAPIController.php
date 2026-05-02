@@ -20,12 +20,12 @@ class CategoryAPIController extends Controller
     public function __construct(CategoryService $categoryService)
     {
         $this->categoryService = $categoryService;
-        $this->middleware('auth'); // Using web auth instead of sanctum
-        $this->middleware('permission:category.view')->only(['index', 'show', 'active', 'tree', 'root', 'children', 'search', 'dropdown', 'descendants', 'withProductCounts']);
+        $this->middleware('auth:sanctum');
+        $this->middleware('permission:category.view')->only(['index', 'show']);
         $this->middleware('permission:category.create')->only(['store']);
         $this->middleware('permission:category.edit')->only(['update']);
         $this->middleware('permission:category.delete')->only(['destroy']);
-        $this->middleware('permission:category.manage')->only(['toggleStatus', 'updateSortOrder', 'move', 'statistics']);
+        $this->middleware('permission:category.manage')->only(['toggleStatus', 'updateSortOrder', 'move']);
     }
 
     /**

@@ -23,11 +23,11 @@ class CategoryController extends Controller
     {
         $this->categoryService = $categoryService;
         $this->middleware('auth');
-        $this->middleware('permission:view categories')->only(['index', 'show']);
-        $this->middleware('permission:create categories')->only(['create', 'store']);
-        $this->middleware('permission:edit categories')->only(['edit', 'update']);
-        $this->middleware('permission:delete categories')->only(['destroy']);
-        $this->middleware('permission:manage categories')->only(['toggleStatus', 'updateSortOrder', 'move']);
+        $this->middleware('permission:category.view')->only(['index', 'show']);
+        $this->middleware('permission:category.create')->only(['create', 'store']);
+        $this->middleware('permission:category.edit')->only(['edit', 'update']);
+        $this->middleware('permission:category.delete')->only(['destroy']);
+        $this->middleware('permission:category.manage')->only(['toggleStatus', 'updateSortOrder', 'move']);
     }
 
     /**
@@ -38,14 +38,14 @@ class CategoryController extends Controller
         $perPage = $request->get('per_page', 15);
         $categories = $this->categoryService->getPaginatedCategories($perPage);
 
-        return Inertia::render('categories/index', [
+        return Inertia::render('Categories/Index', [
             'categories' => $categories,
             'filters' => $request->only(['per_page']),
             'can' => [
                 'create' => auth()->user()->can('create', Category::class),
-                'edit' => auth()->user()->hasRole(['admin', 'store_manager']),
-                'delete' => auth()->user()->hasRole(['admin']),
-                'manage' => auth()->user()->hasRole(['admin', 'store_manager']),
+                'edit' => auth()->user()->can('update', Category::class),
+                'delete' => auth()->user()->can('delete', Category::class),
+                'manage' => auth()->user()->can('manageHierarchy', Category::class),
             ]
         ]);
     }
@@ -57,7 +57,7 @@ class CategoryController extends Controller
     {
         $parentCategories = $this->categoryService->getCategoriesForDropdown();
 
-        return Inertia::render('categories/create', [
+        return Inertia::render('Categories/Create', [
             'parentCategories' => $parentCategories,
         ]);
     }
@@ -97,7 +97,7 @@ class CategoryController extends Controller
         $categoryDto = $this->categoryService->getCategoryById($category->id);
         $childCategories = $this->categoryService->getChildCategories($category->id);
 
-        return Inertia::render('categories/show', [
+        return Inertia::render('Categories/Show', [
             'category' => $categoryDto,
             'childCategories' => $childCategories,
             'can' => [
@@ -116,7 +116,7 @@ class CategoryController extends Controller
         $categoryDto = $this->categoryService->getCategoryById($category->id);
         $parentCategories = $this->categoryService->getCategoriesForDropdown($category->id);
 
-        return Inertia::render('categories/edit', [
+        return Inertia::render('Categories/Edit', [
             'category' => $categoryDto,
             'parentCategories' => $parentCategories,
         ]);

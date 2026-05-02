@@ -10,9 +10,9 @@ class UpdateProductDTO extends BaseDataTransferObject
     public function __construct(
         public readonly string $name,
         public readonly string $productCode,
+        public readonly float $price,
         public readonly ?string $barcode = null,
         public readonly ?string $description = null,
-        public readonly float $price,
         public readonly ?float $costPrice = null,
         public readonly ?int $categoryId = null,
         public readonly ?bool $isActive = null,

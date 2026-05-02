@@ -56,10 +56,9 @@ class ProductPolicy
         }
 
         // Additional business rule: Cannot delete product with sales records
-        // TODO: Implement when SaleItem model exists
-        // if ($product->saleItems()->exists()) {
-        //     return false;
-        // }
+        if ($product->saleItems()->exists()) {
+            return false;
+        }
 
         return true;
     }

@@ -47,14 +47,14 @@ trait HasRolesAndPermissions
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
         // Create roles
-        $roles = ['admin', 'store_manager', 'cashier', 'warehouse_staff'];
+        $roles = ['admin', 'store_manager', 'cashier', 'warehouse_staff', 'user'];
 
         foreach ($roles as $role) {
-            Role::create(['name' => $role]);
+            Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
         }
 
         // Assign permissions to roles

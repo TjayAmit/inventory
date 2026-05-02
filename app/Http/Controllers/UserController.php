@@ -40,7 +40,7 @@ class UserController extends Controller
 
         $users = $this->userService->getUsers($filters);
 
-        return Inertia::render('users/index', [
+        return Inertia::render('users/Index', [
             'users' => $users,
             'filters' => $request->only(['search', 'role']),
             'roles' => Role::all(),
@@ -59,7 +59,7 @@ class UserController extends Controller
 
         $availableRoles = $this->roleService->getAvailableRolesForUser(request()->user());
 
-        return Inertia::render('users/create', [
+        return Inertia::render('users/Create', [
             'roles' => Role::all(),
             'availableRoles' => $availableRoles,
         ]);
@@ -124,7 +124,7 @@ class UserController extends Controller
 
         $user->load('roles', 'permissions');
 
-        return Inertia::render('users/show', [
+        return Inertia::render('users/Show', [
             'user' => $user,
         ]);
     }
@@ -139,7 +139,7 @@ class UserController extends Controller
         $user->load('roles');
         $availableRoles = $this->roleService->getAvailableRolesForUser(request()->user());
 
-        return Inertia::render('users/edit', [
+        return Inertia::render('users/Edit', [
             'user' => $user,
             'roles' => Role::all(),
             'availableRoles' => $availableRoles,

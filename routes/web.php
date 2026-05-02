@@ -14,7 +14,7 @@ Route::inertia('/', 'welcome', [
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
     // User Management Routes
-    Route::resource('users', UserController::class);
+    Route::resource('users', UserController::class)->except(['create']);
 
     // Product Management Routes - Additional routes MUST come before resource route
     Route::get('products/search', [ProductController::class, 'search'])->name('products.search');

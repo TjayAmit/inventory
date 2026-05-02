@@ -541,15 +541,15 @@ describe('destroy', function () {
         $this->assertDatabaseHas('users', ['id' => $this->admin->id]);
     });
 
-    it('admin can delete other admin users', function () {
+    it('admin cannot delete other admin users', function () {
         $otherAdmin = User::factory()->create();
         $otherAdmin->assignRole('admin');
         $otherAdminId = $otherAdmin->id;
 
         $response = $this->actingAs($this->admin)->delete(route('users.destroy', $otherAdmin));
 
-        // Admin can delete other admins (only self-deletion is prevented)
-        $this->assertDatabaseMissing('users', ['id' => $otherAdminId]);
+        // Verify the other admin still exists in database
+        $this->assertDatabaseHas('users', ['id' => $otherAdminId]);
     });
 
     it('returns error when deleting non-existent user', function () {

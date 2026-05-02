@@ -57,8 +57,15 @@ test('only admin can delete products', function () {
     expect($this->policy->delete($this->user, $product))->toBeFalse();
 });
 
-// Note: Test for 'admin cannot delete product with sales' removed because SaleItem model doesn't exist
-// This test can be re-added when the sales module is implemented
+test('admin cannot delete product with sales', function () {
+    $product = Product::factory()->create();
+    
+    // Mock sale items relationship
+    $mockProduct = \Mockery::mock($product);
+    $mockProduct->shouldReceive('saleItems->exists')->andReturn(true);
+
+    expect($this->policy->delete($this->admin, $mockProduct))->toBeFalse();
+});
 
 test('only admin can restore products', function () {
     $product = Product::factory()->create();

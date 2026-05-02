@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
-import { Edit, Eye, Trash2, Folder, FolderOpen, ToggleRight } from 'lucide-react';
+import { Plus, Edit, Eye, Trash2, Folder, FolderOpen, ToggleLeft, ToggleRight, ArrowUpDown } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -8,7 +8,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { DataTable, DataTableColumn, DataTableAction, useDebouncedValue } from '@/components/data-table';
+import { DataTable, DataTableColumn, DataTableAction, useDebouncedValue, DataTableCells } from '@/components/data-table';
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { Badge } from '@/components/ui/badge';
 import AppContentWrapper from '@/components/app-content-wrapper';
@@ -57,23 +57,12 @@ export default function CategoriesIndex({ categories, filters, can }: Categories
     const [search, setSearch] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || '');
     const debouncedSearch = useDebouncedValue(search, 500);
-    const isInitialMount = React.useRef(true);
 
     // Apply filters when they change
     React.useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return;
-        }
-        // Only trigger request if search or status filter has a value
-        if (!debouncedSearch && !statusFilter) {
-            return;
-        }
-        
-        router.get('/categories', {
-            page: categories.current_page,
-            search: debouncedSearch || undefined,
-            status: statusFilter || undefined
+        router.get('/categories', { 
+            search: debouncedSearch, 
+            status: statusFilter 
         }, { preserveState: true, replace: true });
     }, [debouncedSearch, statusFilter]);
 
@@ -99,23 +88,6 @@ export default function CategoriesIndex({ categories, filters, can }: Categories
 
     const toggleStatus = (category: Category) => {
         router.put(`/categories/${category.id}/toggle-status`, {}, { preserveState: true });
-    };
-
-    const handlePageChange = (page: number) => {
-        router.get('/categories', {
-            page,
-            search: debouncedSearch || undefined,
-            status: statusFilter || undefined,
-        }, { preserveState: true });
-    };
-
-    const handlePageSizeChange = (size: number) => {
-        router.get('/categories', {
-            page: 1,
-            per_page: size,
-            search: debouncedSearch || undefined,
-            status: statusFilter || undefined,
-        }, { preserveState: true });
     };
 
     // Define columns for the categories table
@@ -246,7 +218,6 @@ export default function CategoriesIndex({ categories, filters, can }: Categories
             <Head title="Categories" />
             <AppContentWrapper>
                 <DataTable
-                    key={categories.current_page}
                     title="Categories"
                     description="Manage product categories and organization"
                     data={categories.data}
@@ -267,8 +238,6 @@ export default function CategoriesIndex({ categories, filters, can }: Categories
                     createLabel="Add Category"
                     emptyTitle="No categories found"
                     emptyDescription="Get started by creating a new category."
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={handlePageSizeChange}
                 />
             </AppContentWrapper>
 

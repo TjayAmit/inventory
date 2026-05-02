@@ -190,14 +190,11 @@ test('can toggle category status', function () {
         ->actingAs($this->admin)
         ->put("/categories/{$category->id}/toggle-status");
 
-    // Endpoint may return redirect or error depending on implementation
-    expect($response->status())->toBeIn([200, 302, 500]);
-    if ($response->isRedirect()) {
-        $this->assertDatabaseHas('categories', [
-            'id' => $category->id,
-            'is_active' => false,
-        ]);
-    }
+    $response->assertRedirect();
+    $this->assertDatabaseHas('categories', [
+        'id' => $category->id,
+        'is_active' => false,
+    ]);
 });
 
 test('cannot toggle category status without permission', function () {
@@ -211,14 +208,14 @@ test('cannot toggle category status without permission', function () {
 });
 
 test('can get categories dropdown', function () {
-    Category::factory()->count(5)->create();
+    Category::factory()->count(3)->create();
 
     $response = $this
         ->actingAs($this->user)
         ->get('/categories/dropdown');
 
     $response->assertStatus(200);
-    $response->assertJsonPath('data', fn ($data) => count($data) >= 3);
+    $response->assertJsonCount(3);
 });
 
 test('can get category tree', function () {
@@ -230,7 +227,7 @@ test('can get category tree', function () {
         ->get('/categories/tree');
 
     $response->assertStatus(200);
-    $response->assertJsonPath('data', fn ($data) => count($data) >= 1);
+    $response->assertJsonCount(1); // Only root categories
 });
 
 test('can search categories', function () {
@@ -242,7 +239,7 @@ test('can search categories', function () {
         ->get('/categories/search?term=Electronics');
 
     $response->assertStatus(200);
-    $response->assertJsonPath('data', fn ($data) => count($data) >= 1);
+    $response->assertJsonCount(1);
 });
 
 test('can move category', function () {
@@ -255,14 +252,11 @@ test('can move category', function () {
             'parent_id' => $newParent->id,
         ]);
 
-    // Endpoint may return redirect or error depending on implementation
-    expect($response->status())->toBeIn([200, 302, 500]);
-    if ($response->isRedirect()) {
-        $this->assertDatabaseHas('categories', [
-            'id' => $category->id,
-            'parent_id' => $newParent->id,
-        ]);
-    }
+    $response->assertRedirect();
+    $this->assertDatabaseHas('categories', [
+        'id' => $category->id,
+        'parent_id' => $newParent->id,
+    ]);
 });
 
 test('cannot move category without permission', function () {
@@ -289,19 +283,15 @@ test('can update sort order', function () {
             'category_ids' => [$category3->id, $category2->id, $category1->id],
         ]);
 
-    // Accept redirect (302) or success (200)
-    expect($response->status())->toBeIn([200, 302]);
+    $response->assertRedirect();
     
     $category1->refresh();
     $category2->refresh();
     $category3->refresh();
     
-    // If redirect happened, verify sort order was updated
-    if ($response->isRedirect()) {
-        expect($category3->sort_order)->toBe(0);
-        expect($category2->sort_order)->toBe(1);
-        expect($category1->sort_order)->toBe(2);
-    }
+    expect($category3->sort_order)->toBe(0);
+    expect($category2->sort_order)->toBe(1);
+    expect($category1->sort_order)->toBe(2);
 });
 
 test('cannot update sort order without permission', function () {
@@ -323,8 +313,13 @@ test('can get category statistics', function () {
         ->get('/categories/statistics');
 
     $response->assertStatus(200);
-    // Response may have different structure - just check it's valid JSON
-    $response->assertJsonPath('success', true);
+    $response->assertJsonStructure([
+        'total',
+        'active',
+        'inactive',
+        'root',
+        'active_percentage',
+    ]);
 });
 
 test('cannot get statistics without permission', function () {
@@ -332,8 +327,7 @@ test('cannot get statistics without permission', function () {
         ->actingAs($this->warehouseStaff)
         ->get('/categories/statistics');
 
-    // Statistics endpoint may return 200, 403 or 404 depending on implementation
-    expect($response->status())->toBeIn([200, 403, 404]);
+    $response->assertStatus(403);
 });
 
 test('unauthenticated user cannot access category routes', function () {
@@ -402,8 +396,7 @@ test('cannot create category with duplicate name', function () {
             'description' => 'Duplicate test',
         ]);
 
-    // App may or may not validate duplicate names
-    expect($response->status())->toBeIn([200, 302, 422]);
+    $response->assertSessionHasErrors('name');
 });
 
 test('cannot create category with extremely long name', function () {
@@ -430,8 +423,7 @@ test('cannot update category to have duplicate name', function () {
             'description' => 'Updated description',
         ]);
 
-    // App may or may not validate duplicate names
-    expect($response->status())->toBeIn([200, 302, 422]);
+    $response->assertSessionHasErrors('name');
 });
 
 test('cannot move category to be its own parent', function () {
@@ -443,8 +435,7 @@ test('cannot move category to be its own parent', function () {
             'parent_id' => $category->id,
         ]);
 
-    // App may or may not validate this constraint
-    expect($response->status())->toBeIn([200, 302, 422, 500]);
+    $response->assertSessionHasErrors('parent_id');
 });
 
 test('cannot move category to non-existent parent', function () {
@@ -456,8 +447,7 @@ test('cannot move category to non-existent parent', function () {
             'parent_id' => 99999,
         ]);
 
-    // App may or may not validate parent existence
-    expect($response->status())->toBeIn([200, 302, 422, 500]);
+    $response->assertSessionHasErrors('parent_id');
 });
 
 test('cannot update sort order with invalid category ids', function () {
@@ -467,8 +457,7 @@ test('cannot update sort order with invalid category ids', function () {
             'category_ids' => [99999, 88888, 77777],
         ]);
 
-    // App may or may not validate category IDs
-    expect($response->status())->toBeIn([200, 302, 422, 500]);
+    $response->assertSessionHasErrors('category_ids.*');
 });
 
 test('returns 404 for non-existent category show', function () {
@@ -515,17 +504,15 @@ test('cannot toggle status of non-existent category', function () {
 });
 
 test('search returns empty results for non-matching term', function () {
-    // Clear any existing categories first by creating a fresh scenario
     Category::factory()->create(['name' => 'Electronics']);
     Category::factory()->create(['name' => 'Books']);
 
     $response = $this
         ->actingAs($this->user)
-        ->get('/categories/search?term=NonExistentXYZ123');
+        ->get('/categories/search?term=NonExistent');
 
     $response->assertStatus(200);
-    // Response may contain data from other tests, check response structure
-    $response->assertJsonPath('data', fn ($data) => is_array($data));
+    $response->assertJsonCount(0);
 });
 
 test('search requires search term parameter', function () {
@@ -553,8 +540,7 @@ test('category tree returns empty when no root categories exist', function () {
         ->get('/categories/tree');
 
     $response->assertStatus(200);
-    // Response may contain data from other tests or seeders
-    $response->assertJsonPath('data', fn ($data) => is_array($data));
+    $response->assertJsonCount(0);
 });
 
 test('statistics return zero when no categories exist', function () {
@@ -562,6 +548,12 @@ test('statistics return zero when no categories exist', function () {
         ->actingAs($this->admin)
         ->get('/categories/statistics');
 
-    // Statistics endpoint may return 200 or 404 depending on implementation
-    expect($response->status())->toBeIn([200, 404]);
+    $response->assertStatus(200);
+    $response->assertJson([
+        'total' => 0,
+        'active' => 0,
+        'inactive' => 0,
+        'root' => 0,
+        'active_percentage' => 0,
+    ]);
 });

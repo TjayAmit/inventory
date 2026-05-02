@@ -58,7 +58,7 @@ test('validation passes with valid data', function () {
         sortOrder: 5
     );
 
-    expect(fn() => $dto->validate())->not->toThrow(\Exception::class);
+    expect(fn() => $dto->validate())->not->toThrow();
 });
 
 test('validation fails with empty name', function () {
@@ -211,7 +211,7 @@ test('business rules validation passes with valid data', function () {
     expect(fn() => $dto->validateBusinessRules([
         'name' => 'Valid Child Category',
         'parent_id' => $parent->id,
-    ]))->not->toThrow(\Exception::class);
+    ]))->not->toThrow();
 });
 
 test('business rules validation passes without parent', function () {
@@ -226,7 +226,7 @@ test('business rules validation passes without parent', function () {
     expect(fn() => $dto->validateBusinessRules([
         'name' => 'Valid Root Category',
         'parent_id' => null,
-    ]))->not->toThrow(\Exception::class);
+    ]))->not->toThrow();
 });
 
 test('toArray returns correct data', function () {

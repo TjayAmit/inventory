@@ -25,7 +25,7 @@ test('can view products index', function () {
 
     $response->assertStatus(200);
     $response->assertInertia(function ($page) {
-        expect($page->component())->toBe('products/index');
+        expect($page->component())->toBe('Products/Index');
         expect($page->props('products'))->toHaveCount(5);
     });
 });
@@ -40,7 +40,7 @@ test('can view products index with filters', function () {
 
     $response->assertStatus(200);
     $response->assertInertia(function ($page) {
-        expect($page->component())->toBe('products/index');
+        expect($page->component())->toBe('Products/Index');
         expect($page->props('products'))->toHaveCount(3);
     });
 });
@@ -52,7 +52,7 @@ test('can create product', function () {
 
     $response->assertStatus(200);
     $response->assertInertia(function ($page) {
-        expect($page->component())->toBe('products/create');
+        expect($page->component())->toBe('Products/Create');
         expect($page->props('categories'))->not->toBeNull();
     });
 });
@@ -127,7 +127,7 @@ test('can show product', function () {
 
     $response->assertStatus(200);
     $response->assertInertia(function ($page) use ($product) {
-        expect($page->component())->toBe('products/show');
+        expect($page->component())->toBe('Products/Show');
         expect($page->props('product')->id)->toBe($product->id);
     });
 });
@@ -141,7 +141,7 @@ test('can edit product', function () {
 
     $response->assertStatus(200);
     $response->assertInertia(function ($page) use ($product) {
-        expect($page->component())->toBe('products/edit');
+        expect($page->component())->toBe('Products/Edit');
         expect($page->props('product')->id)->toBe($product->id);
         expect($page->props('categories'))->not->toBeNull();
     });
@@ -185,17 +185,17 @@ test('can update product', function () {
         ->actingAs($this->storeManager)
         ->put("/products/{$product->id}", $updateData);
 
-    // Accept redirect (success) or validation errors
-    expect($response->status())->toBeIn([200, 302]);
-    if ($response->isRedirect()) {
-        $this->assertDatabaseHas('products', [
-            'id' => $product->id,
-            'name' => 'Updated Product',
-            'product_code' => 'UPD001',
-            'barcode' => '9876543210987',
-            'price' => 199.99,
-        ]);
-    }
+    $response->assertRedirect('/products');
+    $this->assertDatabaseHas('products', [
+        'id' => $product->id,
+        'name' => 'Updated Product',
+        'product_code' => 'UPD001',
+        'barcode' => '9876543210987',
+        'price' => 199.99,
+        'cost_price' => 100.00,
+        'is_active' => false,
+        'is_taxable' => false,
+    ]);
 });
 
 test('cannot update product without permission', function () {
@@ -293,7 +293,7 @@ test('can search products', function () {
         ->get('/products/search?term=Apple');
 
     $response->assertStatus(200);
-    $response->assertJsonPath('data', fn ($data) => count($data) >= 1);
+    $response->assertJsonCount(1);
 });
 
 test('can find product by barcode', function () {
@@ -304,8 +304,10 @@ test('can find product by barcode', function () {
         ->get('/products/find-by-barcode?barcode=1234567890128');
 
     $response->assertStatus(200);
-    $response->assertJsonPath('data.id', $product->id);
-    $response->assertJsonPath('data.barcode', '1234567890128');
+    $response->assertJsonFragment([
+        'id' => $product->id,
+        'barcode' => '1234567890128',
+    ]);
 });
 
 test('can find product by product code', function () {
@@ -316,25 +318,26 @@ test('can find product by product code', function () {
         ->get('/products/find-by-product-code?product_code=TEST001');
 
     $response->assertStatus(200);
-    $response->assertJsonPath('data.id', $product->id);
-    $response->assertJsonPath('data.productCode', 'TEST001');
+    $response->assertJsonFragment([
+        'id' => $product->id,
+        'product_code' => 'TEST001',
+    ]);
 });
 
 test('can get products dropdown', function () {
-    Product::factory()->count(5)->create();
+    Product::factory()->count(3)->create();
 
     $response = $this
         ->actingAs($this->user)
         ->get('/products/dropdown');
 
     $response->assertStatus(200);
-    // Response has {'data': [...]} structure, check data array has items
-    $response->assertJsonPath('data', fn ($data) => count($data) >= 3);
+    $response->assertJsonCount(3);
 });
 
 test('can get products by category', function () {
     $category = Category::factory()->create();
-    Product::factory()->count(5)->withCategory($category)->create();
+    Product::factory()->count(3)->withCategory($category)->create();
     Product::factory()->count(2)->create();
 
     $response = $this
@@ -342,11 +345,11 @@ test('can get products by category', function () {
         ->get("/products/by-category/{$category->id}");
 
     $response->assertStatus(200);
-    $response->assertJsonPath('data', fn ($data) => count($data) >= 3);
+    $response->assertJsonCount(3);
 });
 
 test('can get products by brand', function () {
-    Product::factory()->count(5)->create(['brand' => 'Apple']);
+    Product::factory()->count(3)->create(['brand' => 'Apple']);
     Product::factory()->count(2)->create(['brand' => 'Samsung']);
 
     $response = $this
@@ -354,11 +357,11 @@ test('can get products by brand', function () {
         ->get('/products/by-brand/Apple');
 
     $response->assertStatus(200);
-    $response->assertJsonPath('data', fn ($data) => count($data) >= 3);
+    $response->assertJsonCount(3);
 });
 
 test('can get products by supplier', function () {
-    Product::factory()->count(5)->create(['supplier' => 'Supplier A']);
+    Product::factory()->count(3)->create(['supplier' => 'Supplier A']);
     Product::factory()->count(2)->create(['supplier' => 'Supplier B']);
 
     $response = $this
@@ -366,34 +369,34 @@ test('can get products by supplier', function () {
         ->get('/products/by-supplier/Supplier A');
 
     $response->assertStatus(200);
-    $response->assertJsonPath('data', fn ($data) => count($data) >= 3);
+    $response->assertJsonCount(3);
 });
 
 test('can get products with barcodes', function () {
-    Product::factory()->count(5)->withBarcode()->create();
-    Product::factory()->count(2)->withoutBarcode()->create();
+    Product::factory()->count(3)->create(['barcode' => '1234567890128']);
+    Product::factory()->count(2)->create(['barcode' => null]);
 
     $response = $this
         ->actingAs($this->user)
         ->get('/products/with-barcodes');
 
     $response->assertStatus(200);
-    $response->assertJsonPath('data', fn ($data) => count($data) >= 3);
+    $response->assertJsonCount(3);
 });
 
 test('can get products without barcodes', function () {
-    Product::factory()->count(5)->withoutBarcode()->create();
-    Product::factory()->count(2)->withBarcode()->create();
+    Product::factory()->count(3)->create(['barcode' => null]);
+    Product::factory()->count(2)->create(['barcode' => '1234567890128']);
 
     $response = $this
         ->actingAs($this->user)
         ->get('/products/without-barcodes');
 
     $response->assertStatus(200);
-    $response->assertJsonPath('data', fn ($data) => count($data) >= 3);
+    $response->assertJsonCount(3);
 });
 
-test('products with profit margins endpoint behavior', function () {
+test('can get products with profit margins', function () {
     Product::factory()->count(3)->create([
         'price' => 100.00,
         'cost_price' => 50.00,
@@ -404,20 +407,30 @@ test('products with profit margins endpoint behavior', function () {
         ->actingAs($this->user)
         ->get('/products/with-profit-margins');
 
-    // Endpoint may return 200 or 404 depending on implementation
-    expect($response->status())->toBeIn([200, 404]);
+    $response->assertStatus(200);
+    $response->assertJsonCount(3);
 });
 
-test('product statistics endpoint behavior', function () {
+test('can get product statistics', function () {
     Product::factory()->count(3)->create(['is_active' => true]);
     Product::factory()->count(2)->create(['is_active' => false]);
+    Product::factory()->count(3)->create(['barcode' => '1234567890128']);
+    Product::factory()->count(2)->create(['barcode' => null]);
 
     $response = $this
         ->actingAs($this->admin)
         ->get('/products/statistics');
 
-    // Statistics endpoint may return 200 or 404 depending on implementation
-    expect($response->status())->toBeIn([200, 404]);
+    $response->assertStatus(200);
+    $response->assertJsonStructure([
+        'total',
+        'active',
+        'inactive',
+        'with_barcodes',
+        'without_barcodes',
+        'active_percentage',
+        'barcode_coverage',
+    ]);
 });
 
 test('cannot get statistics without permission', function () {
@@ -425,8 +438,7 @@ test('cannot get statistics without permission', function () {
         ->actingAs($this->warehouseStaff)
         ->get('/products/statistics');
 
-    // Statistics endpoint may return 200, 403 or 404 depending on implementation
-    expect($response->status())->toBeIn([200, 403, 404]);
+    $response->assertStatus(403);
 });
 
 test('unauthenticated user cannot access product routes', function () {
@@ -453,7 +465,7 @@ test('product validation works correctly', function () {
     $this->assertDatabaseMissing('products', ['name' => '']);
 });
 
-test('barcode validation depends on app implementation', function () {
+test('barcode validation works correctly', function () {
     $response = $this
         ->actingAs($this->storeManager)
         ->post('/products', [
@@ -463,8 +475,8 @@ test('barcode validation depends on app implementation', function () {
             'barcode' => '1234567890123', // Invalid checksum
         ]);
 
-    // App may or may not validate barcode checksum
-    expect($response->status())->toBeIn([200, 302, 422]);
+    $response->assertSessionHasErrors('barcode');
+    $this->assertDatabaseMissing('products', ['barcode' => '1234567890123']);
 });
 
 test('can create product without barcode', function () {
@@ -549,7 +561,7 @@ test('cannot create product with duplicate product code', function () {
     $response->assertSessionHasErrors('product_code');
 });
 
-test('duplicate barcode handling depends on app implementation', function () {
+test('cannot create product with duplicate barcode', function () {
     $existing = Product::factory()->create(['barcode' => '1234567890128']);
 
     $response = $this
@@ -561,8 +573,7 @@ test('duplicate barcode handling depends on app implementation', function () {
             'price' => 99.99,
         ]);
 
-    // App may or may not validate duplicate barcodes
-    expect($response->status())->toBeIn([200, 302, 422]);
+    $response->assertSessionHasErrors('barcode');
 });
 
 test('cannot create product with negative price', function () {
@@ -577,7 +588,7 @@ test('cannot create product with negative price', function () {
     $response->assertSessionHasErrors('price');
 });
 
-test('negative cost price validation depends on app implementation', function () {
+test('cannot create product with negative cost price', function () {
     $response = $this
         ->actingAs($this->storeManager)
         ->post('/products', [
@@ -587,11 +598,10 @@ test('negative cost price validation depends on app implementation', function ()
             'cost_price' => -5.00,
         ]);
 
-    // App may or may not validate negative cost price
-    expect($response->status())->toBeIn([200, 302, 422]);
+    $response->assertSessionHasErrors('cost_price');
 });
 
-test('cost price validation depends on app implementation', function () {
+test('cannot create product with cost price higher than price', function () {
     $response = $this
         ->actingAs($this->storeManager)
         ->post('/products', [
@@ -601,8 +611,7 @@ test('cost price validation depends on app implementation', function () {
             'cost_price' => 100.00,
         ]);
 
-    // App may or may not validate cost price against selling price
-    expect($response->status())->toBeIn([200, 302, 403, 422]);
+    $response->assertSessionHasErrors('cost_price');
 });
 
 test('cannot update product to have duplicate product code', function () {
@@ -672,7 +681,7 @@ test('cannot generate barcode for non-existent product', function () {
     $response->assertNotFound();
 });
 
-test('search returns results based on app implementation', function () {
+test('search returns empty results for non-matching term', function () {
     Product::factory()->create(['name' => 'iPhone']);
     Product::factory()->create(['name' => 'Samsung']);
 
@@ -680,8 +689,8 @@ test('search returns results based on app implementation', function () {
         ->actingAs($this->user)
         ->get('/products/search?term=NonExistentProduct');
 
-    // Search may return 404 or 200 with empty results depending on implementation
-    expect($response->status())->toBeIn([200, 404]);
+    $response->assertStatus(200);
+    $response->assertJsonCount(0);
 });
 
 test('find by barcode returns 404 for non-existent barcode', function () {
@@ -700,15 +709,15 @@ test('find by product code returns 404 for non-existent code', function () {
     $response->assertNotFound();
 });
 
-test('products by brand returns results based on implementation', function () {
+test('products by brand returns empty for non-existent brand', function () {
     Product::factory()->count(3)->create(['brand' => 'Apple']);
 
     $response = $this
         ->actingAs($this->user)
         ->get('/products/by-brand/NonExistentBrand');
 
-    // Endpoint may return 404 or 200 with empty results
-    expect($response->status())->toBeIn([200, 404]);
+    $response->assertStatus(200);
+    $response->assertJsonCount(0);
 });
 
 test('products by supplier returns empty for non-existent supplier', function () {
@@ -718,8 +727,8 @@ test('products by supplier returns empty for non-existent supplier', function ()
         ->actingAs($this->user)
         ->get('/products/by-supplier/NonExistentSupplier');
 
-    // Route may return 404 if supplier not found, or 200 with empty array
-    expect($response->status())->toBeIn([200, 404]);
+    $response->assertStatus(200);
+    $response->assertJsonCount(0);
 });
 
 test('statistics return zero when no products exist', function () {
@@ -727,19 +736,27 @@ test('statistics return zero when no products exist', function () {
         ->actingAs($this->admin)
         ->get('/products/statistics');
 
-    // Statistics endpoint may return 200 or 404 depending on implementation
-    expect($response->status())->toBeIn([200, 404]);
+    $response->assertStatus(200);
+    $response->assertJson([
+        'total' => 0,
+        'active' => 0,
+        'inactive' => 0,
+        'with_barcodes' => 0,
+        'without_barcodes' => 0,
+        'active_percentage' => 0,
+        'barcode_coverage' => 0,
+    ]);
 });
 
-test('warehouse staff delete permissions depend on app implementation', function () {
+test('warehouse staff cannot delete products', function () {
     $product = Product::factory()->create();
 
     $response = $this
         ->actingAs($this->warehouseStaff)
         ->delete("/products/{$product->id}");
 
-    // Warehouse staff may or may not have delete permissions
-    expect($response->status())->toBeIn([200, 302, 403, 404]);
+    $response->assertForbidden();
+    $this->assertDatabaseHas('products', ['id' => $product->id]);
 });
 
 test('regular user cannot create products', function () {

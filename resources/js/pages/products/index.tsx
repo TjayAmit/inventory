@@ -71,23 +71,13 @@ export default function ProductsIndex({ products, filters, categories, can }: Pr
     const [categoryFilter, setCategoryFilter] = useState(filters.category || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || '');
     const debouncedSearch = useDebouncedValue(search, 500);
-    const isInitialMount = React.useRef(true);
 
     // Apply filters when they change
     React.useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return;
-        }
-        // Only trigger request if search or filters have a value
-        if (!debouncedSearch && !categoryFilter && !statusFilter) {
-            return;
-        }
-        router.get('/products', {
-            page: products.current_page,
-            search: debouncedSearch || undefined,
-            category: categoryFilter || undefined,
-            status: statusFilter || undefined
+        router.get('/products', { 
+            search: debouncedSearch, 
+            category: categoryFilter,
+            status: statusFilter 
         }, { preserveState: true, replace: true });
     }, [debouncedSearch, categoryFilter, statusFilter]);
 
@@ -117,25 +107,6 @@ export default function ProductsIndex({ products, filters, categories, can }: Pr
 
     const generateBarcode = (product: Product) => {
         router.put(`/products/${product.id}/generate-barcode`, {}, { preserveState: true });
-    };
-
-    const handlePageChange = (page: number) => {
-        router.get('/products', {
-            page,
-            search: debouncedSearch || undefined,
-            category: categoryFilter || undefined,
-            status: statusFilter || undefined,
-        }, { preserveState: true });
-    };
-
-    const handlePageSizeChange = (size: number) => {
-        router.get('/products', {
-            page: 1,
-            per_page: size,
-            search: debouncedSearch || undefined,
-            category: categoryFilter || undefined,
-            status: statusFilter || undefined,
-        }, { preserveState: true });
     };
 
     // Define columns for the products table
@@ -284,7 +255,6 @@ export default function ProductsIndex({ products, filters, categories, can }: Pr
             <Head title="Products" />
             <AppContentWrapper>
                 <DataTable
-                    key={products.current_page}
                     title="Products"
                     description="Manage product inventory, barcodes, and pricing"
                     data={products.data}
@@ -305,8 +275,6 @@ export default function ProductsIndex({ products, filters, categories, can }: Pr
                     createLabel="Add Product"
                     emptyTitle="No products found"
                     emptyDescription="Get started by creating a new product."
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={handlePageSizeChange}
                 />
             </AppContentWrapper>
 

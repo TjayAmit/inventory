@@ -1,10 +1,9 @@
 <?php
 
 use App\Models\Category;
-use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-// use Laravel\Sanctum\Sanctum; // Sanctum not installed, using regular auth
+use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
@@ -25,15 +24,11 @@ test('can list categories via API', function () {
     $response->assertStatus(200);
     $response->assertJsonStructure([
         'success',
-        'data' => [
-            'data',
-            'current_page',
-            'total',
-        ],
+        'data',
         'message',
     ]);
     $response->assertJson(['success' => true]);
-    expect($response->json('data.data'))->toHaveCount(5);
+    expect($response->json('data'))->toHaveCount(5);
 });
 
 test('can create category via API', function () {
@@ -197,7 +192,7 @@ test('can get root categories via API', function () {
 
     $response->assertStatus(200);
     $response->assertJson(['success' => true]);
-    expect($response->json('data'))->toHaveCount(3); // All categories without parent filter
+    expect($response->json('data'))->toHaveCount(2);
 });
 
 test('can get child categories via API', function () {
@@ -476,6 +471,9 @@ test('API error responses follow consistent structure', function () {
         ]);
 
     $response->assertStatus(403);
-    // Permission middleware returns a simple message response, not our standard format
-    expect($response->json())->toHaveKey('message');
+    $response->assertJsonStructure([
+        'success',
+        'message',
+    ]);
+    $response->assertJson(['success' => false]);
 });

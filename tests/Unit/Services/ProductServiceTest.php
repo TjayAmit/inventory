@@ -4,7 +4,10 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Services\ProductService;
 use App\Repositories\Contracts\ProductRepositoryInterface;
-use Mockery\Adapter\Phpunit\Mockery;
+use Tests\Unit\Services\ServiceTestCase;
+use Mockery;
+
+uses(ServiceTestCase::class);
 
 beforeEach(function () {
     $this->repository = Mockery::mock(ProductRepositoryInterface::class);
@@ -236,6 +239,9 @@ test('can delete product', function () {
         ->with($product->id)
         ->andReturn($product);
 
+    $mockProduct = Mockery::mock($product);
+    $mockProduct->shouldReceive('saleItems->exists')->andReturn(false);
+
     $this->repository
         ->shouldReceive('delete')
         ->with($product->id)
@@ -246,8 +252,28 @@ test('can delete product', function () {
     expect($result)->toBeTrue();
 });
 
-// Note: Tests for 'cannot delete product with sales' removed because SaleItem model doesn't exist
-// These tests can be re-added when the sales module is implemented
+test('cannot delete product with sales', function () {
+    $product = Product::factory()->create();
+
+    $this->repository
+        ->shouldReceive('findById')
+        ->with($product->id)
+        ->andReturn($product);
+
+    $mockProduct = Mockery::mock($product);
+    $mockProduct->shouldReceive('saleItems->exists')->andReturn(true);
+
+    $this->repository = new ProductService(new class($mockProduct) implements ProductRepositoryInterface {
+        private $product;
+        public function __construct($product) { $this->product = $product; }
+        public function delete($id) { return true; }
+        public function findById($id, $relations = []) { return $this->product; }
+        // Other methods would be implemented but not needed for this test
+    });
+
+    expect(fn() => $this->service->deleteProduct($product->id))
+        ->toThrow(\InvalidArgumentException::class, 'Cannot delete product that has sales records.');
+});
 
 test('can get paginated products with filters', function () {
     $filters = new \App\DTOs\Product\ProductFiltersDTO();

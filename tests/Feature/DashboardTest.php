@@ -4,6 +4,13 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\HasRolesAndPermissions;
 
+uses(RefreshDatabase::class);
+uses(HasRolesAndPermissions::class);
+
+beforeEach(function () {
+    $this->setUpRolesAndPermissions();
+});
+
 it('guests are redirected to the login page', function () {
     $response = $this->get(route('dashboard'));
     $response->assertRedirect(route('login'));

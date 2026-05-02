@@ -13,35 +13,20 @@ return new class extends Migration
     {
         Schema::create('branches', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 20);
+            $table->string('code', 20)->unique();
             $table->string('name');
             $table->text('address')->nullable();
             $table->string('city', 100)->nullable();
-            $table->string('state', 100)->nullable();
-            $table->string('postal_code', 20)->nullable();
-            $table->string('country', 100)->nullable();
             $table->string('phone', 20)->nullable();
             $table->string('email')->nullable();
-            $table->unsignedBigInteger('manager_id')->nullable();
+            $table->foreignId('manager_id')->nullable()->constrained('users')->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->boolean('is_main_branch')->default(false);
             $table->string('timezone', 50)->nullable()->default('UTC');
-            $table->string('currency', 3)->nullable()->default('USD');
-            $table->decimal('tax_rate', 5, 4)->nullable()->default(0.0000);
-            $table->json('operating_hours')->nullable();
+            $table->string('currency', 3)->nullable()->default('PHP');
+            $table->decimal('tax_rate', 5, 4)->nullable()->default(0);
             $table->timestamps();
             $table->softDeletes();
-
-            $table->unique('code');
-            $table->index('manager_id');
-            $table->index('is_active');
-            $table->index('is_main_branch');
-
-            $table->foreign('manager_id')
-                ->references('id')
-                ->on('users')
-                ->onDelete('set null')
-                ->onUpdate('cascade');
         });
     }
 

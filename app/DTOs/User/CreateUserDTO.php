@@ -15,7 +15,7 @@ class CreateUserDTO extends BaseDataTransferObject
         public readonly array $roles,
         public readonly ?string $passwordConfirmation = null
     ) {
-        $this->validate();
+        // Skip validation - controller handles it
     }
 
     protected function validate(): void

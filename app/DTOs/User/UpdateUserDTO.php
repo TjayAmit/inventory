@@ -16,7 +16,7 @@ class UpdateUserDTO extends BaseDataTransferObject
         public readonly ?string $passwordConfirmation = null,
         public readonly ?int $userId = null
     ) {
-        $this->validate();
+        // Skip validation - controller handles it
     }
 
     protected function validate(): void

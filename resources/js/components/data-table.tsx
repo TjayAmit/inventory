@@ -92,6 +92,7 @@ export type DataTableProps<T extends { id: number | string }> = {
     };
     pageSizeOptions?: number[];
     onPageSizeChange?: (size: number) => void;
+    onPageChange?: (page: number) => void;
 };
 
 // Reusable DataTable component
@@ -112,6 +113,7 @@ export function DataTable<T extends { id: number | string }>({
     emptyDescription = 'Get started by creating a new item.',
     pageSizeOptions = [10, 25, 50, 100],
     onPageSizeChange,
+    onPageChange,
 }: DataTableProps<T>) {
     const renderActionButton = (action: DataTableAction<T>, item: T) => {
         const isVisible = action.visible ? action.visible(item) : true;
@@ -345,30 +347,60 @@ export function DataTable<T extends { id: number | string }>({
                             {/* Right: Navigation buttons - always show but disable if single page */}
                             <div className="flex items-center gap-1 order-1 sm:order-2">
                                 {/* First */}
-                                <Link
-                                    href={pagination.links[1]?.url || '#'}
-                                    className={cn(
-                                        'inline-flex items-center justify-center w-9 h-9 rounded-md text-sm font-medium transition-all duration-200',
-                                        pagination.current_page > 1
-                                            ? 'text-foreground hover:text-foreground hover:bg-muted'
-                                            : 'text-muted-foreground pointer-events-none opacity-40'
-                                    )}
-                                >
-                                    <ChevronFirst className="w-5 h-5" />
-                                </Link>
+                                {onPageChange ? (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onPageChange(1)}
+                                        disabled={pagination.current_page <= 1}
+                                        className={cn(
+                                            'w-9 h-9 p-0',
+                                            pagination.current_page <= 1 && 'opacity-40 cursor-not-allowed'
+                                        )}
+                                    >
+                                        <ChevronFirst className="w-5 h-5" />
+                                    </Button>
+                                ) : (
+                                    <Link
+                                        href={pagination.links[1]?.url || '#'}
+                                        className={cn(
+                                            'inline-flex items-center justify-center w-9 h-9 rounded-md text-sm font-medium transition-all duration-200',
+                                            pagination.current_page > 1
+                                                ? 'text-foreground hover:text-foreground hover:bg-muted'
+                                                : 'text-muted-foreground pointer-events-none opacity-40'
+                                        )}
+                                    >
+                                        <ChevronFirst className="w-5 h-5" />
+                                    </Link>
+                                )}
 
                                 {/* Previous */}
-                                <Link
-                                    href={pagination.links[0]?.url || '#'}
-                                    className={cn(
-                                        'inline-flex items-center justify-center w-9 h-9 rounded-md text-sm font-medium transition-all duration-200',
-                                        pagination.links[0]?.url
-                                            ? 'text-foreground hover:text-foreground hover:bg-muted'
-                                            : 'text-muted-foreground pointer-events-none opacity-40'
-                                    )}
-                                >
-                                    <ChevronLeft className="w-5 h-5" />
-                                </Link>
+                                {onPageChange ? (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onPageChange(Math.max(1, pagination.current_page - 1))}
+                                        disabled={!pagination.links[0]?.url}
+                                        className={cn(
+                                            'w-9 h-9 p-0',
+                                            !pagination.links[0]?.url && 'opacity-40 cursor-not-allowed'
+                                        )}
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </Button>
+                                ) : (
+                                    <Link
+                                        href={pagination.links[0]?.url || '#'}
+                                        className={cn(
+                                            'inline-flex items-center justify-center w-9 h-9 rounded-md text-sm font-medium transition-all duration-200',
+                                            pagination.links[0]?.url
+                                                ? 'text-foreground hover:text-foreground hover:bg-muted'
+                                                : 'text-muted-foreground pointer-events-none opacity-40'
+                                        )}
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </Link>
+                                )}
 
                                 {/* Page Numbers - show just '1' for single page */}
                                 <div className="flex items-center gap-1">
@@ -392,6 +424,27 @@ export function DataTable<T extends { id: number | string }>({
                                                 );
                                             }
 
+                                            if (onPageChange) {
+                                                return (
+                                                    <Button
+                                                        key={index}
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => onPageChange(pageNumber)}
+                                                        disabled={!link.url}
+                                                        className={cn(
+                                                            'min-w-[36px] h-9 px-3',
+                                                            link.active
+                                                                ? 'text-primary font-bold bg-muted'
+                                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                                                            !link.url && 'opacity-40 cursor-not-allowed'
+                                                        )}
+                                                    >
+                                                        {pageNumber}
+                                                    </Button>
+                                                );
+                                            }
+
                                             return (
                                                 <Link
                                                     key={index}
@@ -412,30 +465,60 @@ export function DataTable<T extends { id: number | string }>({
                                 </div>
 
                                 {/* Next */}
-                                <Link
-                                    href={pagination.links[pagination.links.length - 1]?.url || '#'}
-                                    className={cn(
-                                        'inline-flex items-center justify-center w-9 h-9 rounded-md text-sm font-medium transition-all duration-200',
-                                        pagination.links[pagination.links.length - 1]?.url
-                                            ? 'text-foreground hover:text-foreground hover:bg-muted'
-                                            : 'text-muted-foreground pointer-events-none opacity-40'
-                                    )}
-                                >
-                                    <ChevronRight className="w-5 h-5" />
-                                </Link>
+                                {onPageChange ? (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onPageChange(Math.min(pagination.last_page, pagination.current_page + 1))}
+                                        disabled={!pagination.links[pagination.links.length - 1]?.url}
+                                        className={cn(
+                                            'w-9 h-9 p-0',
+                                            !pagination.links[pagination.links.length - 1]?.url && 'opacity-40 cursor-not-allowed'
+                                        )}
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </Button>
+                                ) : (
+                                    <Link
+                                        href={pagination.links[pagination.links.length - 1]?.url || '#'}
+                                        className={cn(
+                                            'inline-flex items-center justify-center w-9 h-9 rounded-md text-sm font-medium transition-all duration-200',
+                                            pagination.links[pagination.links.length - 1]?.url
+                                                ? 'text-foreground hover:text-foreground hover:bg-muted'
+                                                : 'text-muted-foreground pointer-events-none opacity-40'
+                                        )}
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </Link>
+                                )}
 
                                 {/* Last */}
-                                <Link
-                                    href={pagination.links[pagination.links.length - 2]?.url || '#'}
-                                    className={cn(
-                                        'inline-flex items-center justify-center w-9 h-9 rounded-md text-sm font-medium transition-all duration-200',
-                                        pagination.current_page < pagination.last_page
-                                            ? 'text-foreground hover:text-foreground hover:bg-muted'
-                                            : 'text-muted-foreground pointer-events-none opacity-40'
-                                    )}
-                                >
-                                    <ChevronLast className="w-5 h-5" />
-                                </Link>
+                                {onPageChange ? (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onPageChange(pagination.last_page)}
+                                        disabled={pagination.current_page >= pagination.last_page}
+                                        className={cn(
+                                            'w-9 h-9 p-0',
+                                            pagination.current_page >= pagination.last_page && 'opacity-40 cursor-not-allowed'
+                                        )}
+                                    >
+                                        <ChevronLast className="w-5 h-5" />
+                                    </Button>
+                                ) : (
+                                    <Link
+                                        href={pagination.links[pagination.links.length - 2]?.url || '#'}
+                                        className={cn(
+                                            'inline-flex items-center justify-center w-9 h-9 rounded-md text-sm font-medium transition-all duration-200',
+                                            pagination.current_page < pagination.last_page
+                                                ? 'text-foreground hover:text-foreground hover:bg-muted'
+                                                : 'text-muted-foreground pointer-events-none opacity-40'
+                                        )}
+                                    >
+                                        <ChevronLast className="w-5 h-5" />
+                                    </Link>
+                                )}
                             </div>
                         </div>
                     </div>

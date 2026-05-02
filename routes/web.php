@@ -5,6 +5,7 @@ use Laravel\Fortify\Features;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\StockController;
 
 Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -31,6 +32,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
     Route::put('products/{product}/generate-barcode', [ProductController::class, 'generateBarcode'])->name('products.generate-barcode');
     Route::resource('products', ProductController::class);
+
+    // Stock Management Routes - Additional routes MUST come before resource route
+    Route::get('stocks', [StockController::class, 'index'])->name('stocks.index');
+    Route::post('stocks/{product}/adjust', [StockController::class, 'adjust'])->name('stocks.adjust');
+    Route::get('stocks/{product}', [StockController::class, 'show'])->name('stocks.show');
 
     // Category Management Routes - Additional routes MUST come before resource route
     Route::get('categories/search', [CategoryController::class, 'search'])->name('categories.search');

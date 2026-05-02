@@ -199,11 +199,11 @@ test('generate_dummy_barcode creates valid EAN-13', function () {
     expect(Product::isValidEAN13Checksum($barcode))->toBeTrue();
 });
 
-test('stock_status_placeholder returns default values', function () {
+test('product with no stock record has zero current stock and is not in stock', function () {
     $product = Product::factory()->create();
 
     expect($product->current_stock)->toBe(0);
-    expect($product->is_in_stock)->toBeTrue();
+    expect($product->is_in_stock)->toBeFalse();
 });
 
 test('product name is unique', function () {

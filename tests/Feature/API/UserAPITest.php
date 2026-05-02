@@ -5,7 +5,7 @@ use Tests\Concerns\HasRolesAndPermissions;
 
 uses(HasRolesAndPermissions::class);
 
-it('API can list users', function () {
+test('API can list users', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -35,7 +35,7 @@ it('API can list users', function () {
         ->assertJson(['success' => true]);
 });
 
-it('API requires authentication to list users', function () {
+test('API requires authentication to list users', function () {
     $this->setUpRolesAndPermissions();
     
     $response = $this->getJson('/api/v1/users');
@@ -43,7 +43,7 @@ it('API requires authentication to list users', function () {
     $response->assertStatus(401);
 });
 
-it('API can create user', function () {
+test('API can create user', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -75,7 +75,7 @@ it('API can create user', function () {
     ]);
 });
 
-it('API prevents non-admin from creating admin user', function () {
+test('API prevents non-admin from creating admin user', function () {
     $this->setUpRolesAndPermissions();
     
     $manager = User::factory()->create();
@@ -100,7 +100,7 @@ it('API prevents non-admin from creating admin user', function () {
         ]);
 });
 
-it('API validates user creation', function () {
+test('API validates user creation', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -120,7 +120,7 @@ it('API validates user creation', function () {
         ->assertJsonValidationErrors(['name', 'email', 'password', 'roles']);
 });
 
-it('API can show user', function () {
+test('API can show user', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -146,7 +146,7 @@ it('API can show user', function () {
         ]]);
 });
 
-it('API returns 404 for non-existent user', function () {
+test('API returns 404 for non-existent user', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -163,7 +163,7 @@ it('API returns 404 for non-existent user', function () {
         ]);
 });
 
-it('API can update user', function () {
+test('API can update user', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -197,7 +197,7 @@ it('API can update user', function () {
     ]);
 });
 
-it('API can update user password', function () {
+test('API can update user password', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -221,7 +221,7 @@ it('API can update user password', function () {
     $response->assertStatus(200);
 });
 
-it('API can delete user', function () {
+test('API can delete user', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -243,7 +243,7 @@ it('API can delete user', function () {
     $this->assertDatabaseMissing('users', ['id' => $user->id]);
 });
 
-it('API prevents deleting admin users', function () {
+test('API prevents deleting admin users', function () {
     $this->setUpRolesAndPermissions();
     
     $manager = User::factory()->create();
@@ -263,10 +263,10 @@ it('API prevents deleting admin users', function () {
         ]);
 });
 
-it('API can search users', function () {
+test('API can search users', function () {
     $this->setUpRolesAndPermissions();
     
-    $admin = User::factory()->create(['name' => 'Admin User', 'email' => 'admin@example.com']);
+    $admin = User::factory()->create();
     $admin->assignRole('admin');
     
     $this->actingAs($admin);
@@ -290,7 +290,7 @@ it('API can search users', function () {
     expect($response->json('count'))->toBe(2);
 });
 
-it('API validates search parameters', function () {
+test('API validates search parameters', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -304,7 +304,7 @@ it('API validates search parameters', function () {
         ->assertJsonValidationErrors(['query']);
 });
 
-it('API can get user statistics', function () {
+test('API can get user statistics', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();
@@ -327,7 +327,7 @@ it('API can get user statistics', function () {
         ->assertJson(['success' => true]);
 });
 
-it('API applies rate limiting', function () {
+test('API applies rate limiting', function () {
     $this->setUpRolesAndPermissions();
     
     $admin = User::factory()->create();

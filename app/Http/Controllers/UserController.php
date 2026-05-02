@@ -22,6 +22,7 @@ class UserController extends Controller
         $this->userService = $userService;
         $this->roleService = $roleService;
     }
+
     /**
      * Display a listing of the resource.
      */

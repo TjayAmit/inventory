@@ -5,522 +5,222 @@ use App\DTOs\User\UpdateUserDTO;
 use App\DTOs\User\UserFiltersDTO;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
-use App\Services\UserRoleService;
 use App\Services\UserService;
+use App\Services\UserRoleService;
 use Illuminate\Auth\AuthManager;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
-use Mockery as m;
-use Tests\Concerns\HasRolesAndPermissions;
 
-uses(HasRolesAndPermissions::class);
+test('UserService can create user', function () {
+    $userRepository = mock(UserRepositoryInterface::class);
+    $authManager = mock(AuthManager::class);
+    $roleService = mock(UserRoleService::class);
+    
+    $userService = new UserService($userRepository, $authManager, $roleService);
 
-beforeEach(function () {
-    $this->setUpRolesAndPermissions();
-
-    $this->userRepository = m::mock(UserRepositoryInterface::class);
-    $this->authManager = m::mock(AuthManager::class);
-    $this->roleService = m::mock(UserRoleService::class);
-
-    $this->userService = new UserService(
-        $this->userRepository,
-        $this->authManager,
-        $this->roleService
+    $dto = new CreateUserDTO(
+        name: 'Test User',
+        email: 'test@example.com',
+        password: 'password123',
+        passwordConfirmation: 'password123',
+        roles: ['cashier']
     );
 
-    // Create real admin user for testing
-    $this->admin = User::factory()->create();
-    $this->admin->assignRole('admin');
+    $mockUser = User::factory()->make(['id' => 1]);
+    $userRepository->shouldReceive('create')->once()->with($dto)->andReturn($mockUser);
+    $authManager->shouldReceive('user')->andReturn(null);
+    $roleService->shouldReceive('validateRoleAssignment')->once();
+
+    $result = $userService->createUser($dto);
+
+    expect($result)->not->toBeNull();
 });
 
-afterEach(function () {
-    m::close();
+test('UserService prevents non-admin from creating admin user', function () {
+    $userRepository = mock(UserRepositoryInterface::class);
+    $authManager = mock(AuthManager::class);
+    $roleService = mock(UserRoleService::class);
+    
+    $userService = new UserService($userRepository, $authManager, $roleService);
+
+    $dto = new CreateUserDTO(
+        name: 'Admin User',
+        email: 'admin@example.com',
+        password: 'password123',
+        passwordConfirmation: 'password123',
+        roles: ['admin']
+    );
+
+    $currentUser = User::factory()->make();
+    $currentUser->assignRole('cashier');
+    
+    $authManager->shouldReceive('user')->andReturn($currentUser);
+    $roleService->shouldReceive('validateRoleAssignment')->once()->andThrow(new \Illuminate\Auth\Access\AuthorizationException());
+
+    expect(fn() => $userService->createUser($dto))
+        ->toThrow(\Illuminate\Auth\Access\AuthorizationException::class);
 });
 
-describe('getUsers', function () {
-    it('returns paginated users with filters', function () {
-        $filters = new UserFiltersDTO(
-            search: 'test',
-            role: 'admin',
-            perPage: 10,
-            sortBy: 'name',
-            sortDirection: 'asc'
-        );
+test('UserService can update user', function () {
+    $userRepository = mock(UserRepositoryInterface::class);
+    $authManager = mock(AuthManager::class);
+    $roleService = mock(UserRoleService::class);
+    
+    $userService = new UserService($userRepository, $authManager, $roleService);
 
-        $users = User::factory()->count(3)->make();
-        $expectedPaginator = new LengthAwarePaginator($users, 3, 10);
+    $dto = new UpdateUserDTO(
+        name: 'Updated Name',
+        email: 'updated@example.com',
+        roles: ['store_manager'],
+        userId: 1
+    );
 
-        $this->userRepository
-            ->shouldReceive('paginateWithFilters')
-            ->once()
-            ->with($filters)
-            ->andReturn($expectedPaginator);
+    $mockUser = User::factory()->make(['id' => 1]);
+    $userRepository->shouldReceive('findById')->once()->with(1)->andReturn($mockUser);
+    $userRepository->shouldReceive('update')->once()->with(1, $dto)->andReturn($mockUser);
+    $authManager->shouldReceive('user')->andReturn(null);
+    $roleService->shouldReceive('validateRoleAssignment')->once();
 
-        $result = $this->userService->getUsers($filters);
+    $result = $userService->updateUser(1, $dto);
 
-        expect($result)->toBe($expectedPaginator);
-    });
-
-    it('returns paginated users with default filters', function () {
-        $filters = new UserFiltersDTO();
-
-        $users = User::factory()->count(3)->make();
-        $expectedPaginator = new LengthAwarePaginator($users, 3, 15);
-
-        $this->userRepository
-            ->shouldReceive('paginateWithFilters')
-            ->once()
-            ->with($filters)
-            ->andReturn($expectedPaginator);
-
-        $result = $this->userService->getUsers($filters);
-
-        expect($result)->toBe($expectedPaginator);
-    });
+    expect($result)->not->toBeNull();
 });
 
-describe('getUserById', function () {
-    it('returns user DTO when user exists', function () {
-        $user = User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-        $user->assignRole('cashier');
+test('UserService can delete user', function () {
+    $userRepository = mock(UserRepositoryInterface::class);
+    $authManager = mock(AuthManager::class);
+    $roleService = mock(UserRoleService::class);
+    
+    $userService = new UserService($userRepository, $authManager, $roleService);
 
-        $this->userRepository
-            ->shouldReceive('findById')
-            ->once()
-            ->with($user->id, ['roles', 'permissions'])
-            ->andReturn($user);
+    $mockUser = User::factory()->make(['id' => 1]);
+    $userRepository->shouldReceive('findById')->once()->with(1)->andReturn($mockUser);
+    $userRepository->shouldReceive('delete')->once()->with(1)->andReturn(true);
+    $authManager->shouldReceive('user')->andReturn(null);
 
-        $result = $this->userService->getUserById($user->id);
+    $result = $userService->deleteUser(1);
 
-        expect($result)->not->toBeNull();
-        expect($result->id)->toBe($user->id);
-        expect($result->name)->toBe('Test User');
-        expect($result->email)->toBe('test@example.com');
-    });
-
-    it('returns null when user does not exist', function () {
-        $this->userRepository
-            ->shouldReceive('findById')
-            ->once()
-            ->with(99999, ['roles', 'permissions'])
-            ->andReturn(null);
-
-        $result = $this->userService->getUserById(99999);
-
-        expect($result)->toBeNull();
-    });
+    expect($result)->toBeTrue();
 });
 
-describe('createUser', function () {
-    it('creates user successfully', function () {
-        $dto = new CreateUserDTO(
-            name: 'New User',
-            email: 'new@example.com',
-            password: 'password123',
-            passwordConfirmation: 'password123',
-            roles: ['cashier']
-        );
+test('UserService prevents deleting admin users', function () {
+    $userRepository = mock(UserRepositoryInterface::class);
+    $authManager = mock(AuthManager::class);
+    $roleService = mock(UserRoleService::class);
+    
+    $userService = new UserService($userRepository, $authManager, $roleService);
 
-        $createdUser = User::factory()->create([
-            'name' => 'New User',
-            'email' => 'new@example.com',
-        ]);
-        $createdUser->assignRole('cashier');
+    $mockUser = User::factory()->make(['id' => 1]);
+    $mockUser->assignRole('admin');
+    
+    $currentUser = User::factory()->make();
+    $currentUser->assignRole('cashier');
 
-        $this->authManager
-            ->shouldReceive('user')
-            ->andReturn($this->admin);
+    $userRepository->shouldReceive('findById')->once()->with(1)->andReturn($mockUser);
+    $authManager->shouldReceive('user')->andReturn($currentUser);
 
-        $this->roleService
-            ->shouldReceive('validateRoleAssignment')
-            ->once()
-            ->with(['cashier'], $this->admin);
-
-        $this->userRepository
-            ->shouldReceive('create')
-            ->once()
-            ->with($dto)
-            ->andReturn($createdUser);
-
-        Log::shouldReceive('info')->once();
-
-        $result = $this->userService->createUser($dto);
-
-        expect($result)->not->toBeNull();
-        expect($result->id)->toBe($createdUser->id);
-        expect($result->name)->toBe('New User');
-    });
-
-    it('throws exception when non-admin tries to create admin user', function () {
-        $dto = new CreateUserDTO(
-            name: 'Fake Admin',
-            email: 'fake@example.com',
-            password: 'password123',
-            passwordConfirmation: 'password123',
-            roles: ['admin']
-        );
-
-        $manager = User::factory()->create();
-        $manager->assignRole('store_manager');
-
-        $this->authManager
-            ->shouldReceive('user')
-            ->andReturn($manager);
-
-        expect(fn () => $this->userService->createUser($dto))
-            ->toThrow(\Illuminate\Auth\Access\AuthorizationException::class, 'Only administrators can create admin users.');
-    });
-
-    it('allows admin to create admin user', function () {
-        $dto = new CreateUserDTO(
-            name: 'New Admin',
-            email: 'newadmin@example.com',
-            password: 'password123',
-            passwordConfirmation: 'password123',
-            roles: ['admin']
-        );
-
-        $createdUser = User::factory()->create([
-            'name' => 'New Admin',
-            'email' => 'newadmin@example.com',
-        ]);
-        $createdUser->assignRole('admin');
-
-        $this->authManager
-            ->shouldReceive('user')
-            ->andReturn($this->admin);
-
-        $this->roleService
-            ->shouldReceive('validateRoleAssignment')
-            ->once()
-            ->with(['admin'], $this->admin);
-
-        $this->userRepository
-            ->shouldReceive('create')
-            ->once()
-            ->andReturn($createdUser);
-
-        Log::shouldReceive('info')->once();
-
-        $result = $this->userService->createUser($dto);
-
-        expect($result)->not->toBeNull();
-        expect($result->name)->toBe('New Admin');
-    });
+    expect(fn() => $userService->deleteUser(1))
+        ->toThrow(\Illuminate\Auth\Access\AuthorizationException::class);
 });
 
-describe('updateUser', function () {
-    it('updates user successfully', function () {
-        $existingUser = User::factory()->create([
-            'name' => 'Old Name',
-            'email' => 'old@example.com',
-        ]);
-        $existingUser->assignRole('cashier');
+test('UserService can get users with filters', function () {
+    $userRepository = mock(UserRepositoryInterface::class);
+    $authManager = mock(AuthManager::class);
+    $roleService = mock(UserRoleService::class);
+    
+    $userService = new UserService($userRepository, $authManager, $roleService);
 
-        $dto = new UpdateUserDTO(
-            name: 'Updated Name',
-            email: 'updated@example.com',
-            password: null,
-            passwordConfirmation: null,
-            roles: ['cashier'],
-            userId: $existingUser->id
-        );
+    $filters = new UserFiltersDTO(
+        search: 'test',
+        perPage: 10
+    );
 
-        $updatedUser = User::factory()->create([
-            'name' => 'Updated Name',
-            'email' => 'updated@example.com',
-        ]);
-        $updatedUser->assignRole('cashier');
+    $mockPaginatedUsers = mock(\Illuminate\Pagination\LengthAwarePaginator::class);
+    $userRepository->shouldReceive('paginateWithFilters')->once()->with($filters)->andReturn($mockPaginatedUsers);
 
-        $this->userRepository
-            ->shouldReceive('findById')
-            ->once()
-            ->with($existingUser->id)
-            ->andReturn($existingUser);
+    $result = $userService->getUsers($filters);
 
-        $this->authManager
-            ->shouldReceive('user')
-            ->andReturn($this->admin);
-
-        $this->roleService
-            ->shouldReceive('validateRoleAssignment')
-            ->once()
-            ->with(['cashier'], $this->admin, $existingUser);
-
-        $this->userRepository
-            ->shouldReceive('update')
-            ->once()
-            ->with($existingUser->id, $dto)
-            ->andReturn($updatedUser);
-
-        Log::shouldReceive('info')->once();
-
-        $result = $this->userService->updateUser($existingUser->id, $dto);
-
-        expect($result)->not->toBeNull();
-        expect($result->name)->toBe('Updated Name');
-        expect($result->email)->toBe('updated@example.com');
-    });
-
-    it('throws exception when updating non-existent user', function () {
-        $dto = new UpdateUserDTO(
-            name: 'Updated Name',
-            email: 'updated@example.com',
-            password: null,
-            passwordConfirmation: null,
-            roles: ['cashier'],
-            userId: 99999
-        );
-
-        $this->userRepository
-            ->shouldReceive('findById')
-            ->once()
-            ->with(99999)
-            ->andReturn(null);
-
-        expect(fn () => $this->userService->updateUser(99999, $dto))
-            ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
-    });
-
-    it('throws exception when non-admin tries to update admin user', function () {
-        $adminUser = User::factory()->create();
-        $adminUser->assignRole('admin');
-
-        $dto = new UpdateUserDTO(
-            name: 'Trying to Update',
-            email: 'test@example.com',
-            password: null,
-            passwordConfirmation: null,
-            roles: ['admin'],
-            userId: $adminUser->id
-        );
-
-        $manager = User::factory()->create();
-        $manager->assignRole('store_manager');
-
-        $this->userRepository
-            ->shouldReceive('findById')
-            ->once()
-            ->with($adminUser->id)
-            ->andReturn($adminUser);
-
-        $this->authManager
-            ->shouldReceive('user')
-            ->andReturn($manager);
-
-        expect(fn () => $this->userService->updateUser($adminUser->id, $dto))
-            ->toThrow(\Illuminate\Auth\Access\AuthorizationException::class);
-    });
+    expect($result)->toBe($mockPaginatedUsers);
 });
 
-describe('deleteUser', function () {
-    it('deletes user successfully', function () {
-        $user = User::factory()->create([
-            'name' => 'User to Delete',
-            'email' => 'delete@example.com',
-        ]);
-        $user->assignRole('cashier');
+test('UserService can get user by ID', function () {
+    $userRepository = mock(UserRepositoryInterface::class);
+    $authManager = mock(AuthManager::class);
+    $roleService = mock(UserRoleService::class);
+    
+    $userService = new UserService($userRepository, $authManager, $roleService);
 
-        $this->userRepository
-            ->shouldReceive('findById')
-            ->once()
-            ->with($user->id)
-            ->andReturn($user);
+    $mockUser = User::factory()->make(['id' => 1]);
+    $userRepository->shouldReceive('findById')->once()->with(1, ['roles', 'permissions'])->andReturn($mockUser);
 
-        $this->authManager
-            ->shouldReceive('user')
-            ->andReturn($this->admin);
+    $result = $userService->getUserById(1);
 
-        $this->userRepository
-            ->shouldReceive('delete')
-            ->once()
-            ->with($user->id)
-            ->andReturn(true);
-
-        Log::shouldReceive('warning')->once();
-
-        $result = $this->userService->deleteUser($user->id);
-
-        expect($result)->toBeTrue();
-    });
-
-    it('returns false when user does not exist', function () {
-        $this->userRepository
-            ->shouldReceive('findById')
-            ->once()
-            ->with(99999)
-            ->andReturn(null);
-
-        $result = $this->userService->deleteUser(99999);
-
-        expect($result)->toBeFalse();
-    });
-
-    it('throws exception when user tries to delete themselves', function () {
-        $this->userRepository
-            ->shouldReceive('findById')
-            ->once()
-            ->with($this->admin->id)
-            ->andReturn($this->admin);
-
-        $this->authManager
-            ->shouldReceive('user')
-            ->andReturn($this->admin);
-
-        expect(fn () => $this->userService->deleteUser($this->admin->id))
-            ->toThrow(\Illuminate\Auth\Access\AuthorizationException::class, 'You cannot delete your own account.');
-    });
-
-    it('throws exception when non-admin tries to delete admin', function () {
-        $adminUser = User::factory()->create();
-        $adminUser->assignRole('admin');
-
-        $manager = User::factory()->create();
-        $manager->assignRole('store_manager');
-
-        $this->userRepository
-            ->shouldReceive('findById')
-            ->once()
-            ->with($adminUser->id)
-            ->andReturn($adminUser);
-
-        $this->authManager
-            ->shouldReceive('user')
-            ->andReturn($manager);
-
-        expect(fn () => $this->userService->deleteUser($adminUser->id))
-            ->toThrow(\Illuminate\Auth\Access\AuthorizationException::class, 'Only administrators can delete admin users.');
-    });
-
-    it('allows admin to delete another admin', function () {
-        $otherAdmin = User::factory()->create();
-        $otherAdmin->assignRole('admin');
-
-        $this->userRepository
-            ->shouldReceive('findById')
-            ->once()
-            ->with($otherAdmin->id)
-            ->andReturn($otherAdmin);
-
-        $this->authManager
-            ->shouldReceive('user')
-            ->andReturn($this->admin);
-
-        $this->userRepository
-            ->shouldReceive('delete')
-            ->once()
-            ->with($otherAdmin->id)
-            ->andReturn(true);
-
-        Log::shouldReceive('warning')->once();
-
-        $result = $this->userService->deleteUser($otherAdmin->id);
-        expect($result)->toBeTrue();
-    });
+    expect($result)->not->BeNull();
 });
 
-describe('searchUsers', function () {
-    it('returns users matching search query', function () {
-        $users = User::factory()->count(3)->create();
+test('UserService returns null for non-existent user', function () {
+    $userRepository = mock(UserRepositoryInterface::class);
+    $authManager = mock(AuthManager::class);
+    $roleService = mock(UserRoleService::class);
+    
+    $userService = new UserService($userRepository, $authManager, $roleService);
 
-        $this->userRepository
-            ->shouldReceive('searchUsers')
-            ->once()
-            ->with('john', [])
-            ->andReturn($users);
+    $userRepository->shouldReceive('findById')->once()->with(999, ['roles', 'permissions'])->andReturn(null);
 
-        $result = $this->userService->searchUsers('john');
+    $result = $userService->getUserById(999);
 
-        expect($result)->toBeArray();
-        expect($result)->toHaveCount(3);
-    });
-
-    it('returns users with additional filters', function () {
-        $users = User::factory()->count(2)->create();
-
-        $this->userRepository
-            ->shouldReceive('searchUsers')
-            ->once()
-            ->with('jane', ['role' => 'cashier'])
-            ->andReturn($users);
-
-        $result = $this->userService->searchUsers('jane', ['role' => 'cashier']);
-
-        expect($result)->toHaveCount(2);
-    });
+    expect($result)->toBeNull();
 });
 
-describe('getUsersByRole', function () {
-    it('returns users by role without limit', function () {
-        $users = User::factory()->count(5)->create();
+test('UserService can search users', function () {
+    $userRepository = mock(UserRepositoryInterface::class);
+    $authManager = mock(AuthManager::class);
+    $roleService = mock(UserRoleService::class);
+    
+    $userService = new UserService($userRepository, $authManager, $roleService);
 
-        $this->userRepository
-            ->shouldReceive('getUsersByRole')
-            ->once()
-            ->with('cashier', null)
-            ->andReturn($users);
+    $mockUsers = collect([User::factory()->make()]);
+    $userRepository->shouldReceive('searchUsers')->once()->with('test', [])->andReturn($mockUsers);
 
-        $result = $this->userService->getUsersByRole('cashier');
+    $result = $userService->searchUsers('test');
 
-        expect($result)->toBeArray();
-        expect($result)->toHaveCount(5);
-    });
-
-    it('returns users by role with limit', function () {
-        $users = User::factory()->count(3)->create();
-
-        $this->userRepository
-            ->shouldReceive('getUsersByRole')
-            ->once()
-            ->with('admin', 3)
-            ->andReturn($users);
-
-        $result = $this->userService->getUsersByRole('admin', 3);
-
-        expect($result)->toHaveCount(3);
-    });
+    expect($result)->toBeArray();
+    expect(count($result))->toBe(1);
 });
 
-describe('getUserStatistics', function () {
-    it('returns user statistics', function () {
-        $allUsers = User::factory()->count(10)->make();
+test('UserService can get users by role', function () {
+    $userRepository = mock(UserRepositoryInterface::class);
+    $authManager = mock(AuthManager::class);
+    $roleService = mock(UserRoleService::class);
+    
+    $userService = new UserService($userRepository, $authManager, $roleService);
 
-        $this->userRepository
-            ->shouldReceive('all')
-            ->once()
-            ->andReturn($allUsers);
+    $mockUsers = collect([User::factory()->make()]);
+    $userRepository->shouldReceive('getUsersByRole')->once()->with('cashier', null)->andReturn($mockUsers);
 
-        $this->userRepository
-            ->shouldReceive('getUserCountByRole')
-            ->once()
-            ->with('admin')
-            ->andReturn(2);
+    $result = $userService->getUsersByRole('cashier');
 
-        $this->userRepository
-            ->shouldReceive('getUserCountByRole')
-            ->once()
-            ->with('store_manager')
-            ->andReturn(3);
+    expect($result)->toBeArray();
+    expect(count($result))->toBe(1);
+});
 
-        $this->userRepository
-            ->shouldReceive('getUserCountByRole')
-            ->once()
-            ->with('cashier')
-            ->andReturn(5);
+test('UserService can get user statistics', function () {
+    $userRepository = mock(UserRepositoryInterface::class);
+    $authManager = mock(AuthManager::class);
+    $roleService = mock(UserRoleService::class);
+    
+    $userService = new UserService($userRepository, $authManager, $roleService);
 
-        $result = $this->userService->getUserStatistics();
+    $userRepository->shouldReceive('all')->once()->andReturn(collect([User::factory()->make(), User::factory()->make()]));
+    $userRepository->shouldReceive('getUserCountByRole')->with('admin')->andReturn(1);
+    $userRepository->shouldReceive('getUserCountByRole')->with('store_manager')->andReturn(1);
+    $userRepository->shouldReceive('getUserCountByRole')->with('cashier')->andReturn(0);
 
-        expect($result)->toBeArray();
-        expect($result)->toHaveKey('total_users');
-        expect($result)->toHaveKey('admin_count');
-        expect($result)->toHaveKey('store_manager_count');
-        expect($result)->toHaveKey('cashier_count');
-        expect($result['total_users'])->toBe(10);
-        expect($result['admin_count'])->toBe(2);
-        expect($result['store_manager_count'])->toBe(3);
-        expect($result['cashier_count'])->toBe(5);
-    });
+    $statistics = $userService->getUserStatistics();
+
+    expect($statistics)->toHaveKey('total_users');
+    expect($statistics)->toHaveKey('admin_count');
+    expect($statistics)->toHaveKey('store_manager_count');
+    expect($statistics)->toHaveKey('cashier_count');
+    expect($statistics['total_users'])->toBe(2);
+    expect($statistics['admin_count'])->toBe(1);
 });

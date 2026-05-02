@@ -2,7 +2,7 @@
 
 use App\DTOs\User\CreateUserDTO;
 
-test('CreateUserDTO accepts valid data', function () {
+it('CreateUserDTO accepts valid data', function () {
     $dto = new CreateUserDTO(
         name: 'John Doe',
         email: 'john@example.com',
@@ -17,7 +17,7 @@ test('CreateUserDTO accepts valid data', function () {
     expect($dto->requestsAdminRole())->toBeFalse();
 });
 
-test('CreateUserDTO detects admin role request', function () {
+it('CreateUserDTO detects admin role request', function () {
     $dto = new CreateUserDTO(
         name: 'Admin User',
         email: 'admin@example.com',
@@ -29,7 +29,7 @@ test('CreateUserDTO detects admin role request', function () {
     expect($dto->requestsAdminRole())->toBeTrue();
 });
 
-test('CreateUserDTO can be converted to array', function () {
+it('CreateUserDTO can be converted to array', function () {
     $dto = new CreateUserDTO(
         name: 'John Doe',
         email: 'john@example.com',
@@ -47,7 +47,7 @@ test('CreateUserDTO can be converted to array', function () {
     expect($array['name'])->toBe('John Doe');
 });
 
-test('CreateUserDTO can be created from array', function () {
+it('CreateUserDTO can be created from array', function () {
     $data = [
         'name' => 'John Doe',
         'email' => 'john@example.com',
@@ -63,7 +63,7 @@ test('CreateUserDTO can be created from array', function () {
     expect($dto->roles)->toBe(['cashier']);
 });
 
-test('CreateUserDTO generates hashed password', function () {
+it('CreateUserDTO generates hashed password', function () {
     $dto = new CreateUserDTO(
         name: 'John Doe',
         email: 'john@example.com',
@@ -79,7 +79,7 @@ test('CreateUserDTO generates hashed password', function () {
     expect(strlen($hashedPassword))->toBeGreaterThan(50); // Hash should be longer
 });
 
-test('CreateUserDTO validates required fields in feature tests', function () {
+it('CreateUserDTO validates required fields in feature tests', function () {
     // This test would be run in feature tests where Laravel is fully booted
     expect(true)->toBeTrue(); // Placeholder for feature test validation
 });

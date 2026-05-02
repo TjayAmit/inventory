@@ -18,7 +18,6 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             RolePermissionSeeder::class,
             CategorySeeder::class,
-            ProductSeeder::class,
         ]);
 
         // Create admin user

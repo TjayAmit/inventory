@@ -4,8 +4,16 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AutoSuggestion } from '@/components/ui/auto-suggestion';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import AppContentWrapper from '@/components/app-content-wrapper';
 
 interface User {
@@ -32,7 +40,7 @@ export default function UsersEdit({ user, roles }: EditProps) {
         email: user.email,
         password: '',
         password_confirmation: '',
-        roles: user.roles.map((role) => role.name),
+        roles: user.roles?.map((role) => role.name) ?? [],
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -40,21 +48,52 @@ export default function UsersEdit({ user, roles }: EditProps) {
         router.put(`/users/${user.id}`, data);
     };
 
+    const handleDelete = () => {
+        if (confirm(`Are you sure you want to delete ${user.name}? This action cannot be undone.`)) {
+            const confirmation = prompt('Type "DELETE" to confirm:');
+            if (confirmation === 'DELETE') {
+                router.delete(`/users/${user.id}`);
+            } else {
+                alert('Delete cancelled. User was not deleted.');
+            }
+        }
+    };
+
     return (
         <>
             <Head title={`Edit User: ${user.name}`} />
             <AppContentWrapper>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Edit User</CardTitle>
+                {/* Page Header - Outside Card */}
+                <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-4">
                         <Link href="/users">
-                            <Button variant="outline">
-                                <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to Users
+                            <Button variant="outline" size="icon">
+                                <ArrowLeft className="w-4 h-4" />
                             </Button>
                         </Link>
-                    </CardHeader>
-                    <CardContent>
+                        <h1 className="text-3xl font-bold tracking-tight">Edit User</h1>
+                    </div>
+                    <Button variant="destructive" onClick={handleDelete}>
+                        Delete User
+                    </Button>
+                </div>
+
+                {/* Breadcrumbs */}
+                <Breadcrumb className="mb-4">
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/users">Users</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>Edit</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
+
+                {/* Card Content */}
+                <Card>
+                    <CardContent className="pt-6">
                         <form onSubmit={handleSubmit}>
                             <div className="space-y-6">
                                 <div className="space-y-2">
@@ -113,26 +152,15 @@ export default function UsersEdit({ user, roles }: EditProps) {
 
                                 <div className="space-y-3">
                                     <Label>Roles</Label>
-                                    <div className="space-y-2">
-                                        {roles.map((role) => (
-                                            <div key={role.id} className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id={`role-${role.id}`}
-                                                    checked={data.roles.includes(role.name)}
-                                                    onCheckedChange={(checked) => {
-                                                        if (checked) {
-                                                            setData('roles', [...data.roles, role.name]);
-                                                        } else {
-                                                            setData('roles', data.roles.filter(r => r !== role.name));
-                                                        }
-                                                    }}
-                                                />
-                                                <Label htmlFor={`role-${role.id}`} className="text-sm font-normal">
-                                                    {role.name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                                </Label>
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <AutoSuggestion
+                                        options={roles.map(role => ({
+                                            value: role.name,
+                                            label: role.name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+                                        }))}
+                                        selected={data.roles}
+                                        onChange={(selected: string[]) => setData('roles', selected)}
+                                        placeholder="Select roles..."
+                                    />
                                     {errors.roles && (
                                         <p className="text-sm text-destructive">{errors.roles}</p>
                                     )}

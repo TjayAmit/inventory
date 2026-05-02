@@ -11,8 +11,15 @@ use Illuminate\Auth\AuthManager;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
 use Mockery as m;
+use Tests\Concerns\HasRolesAndPermissions;
+use Tests\Unit\Services\ServiceTestCase;
+
+uses(ServiceTestCase::class);
+uses(HasRolesAndPermissions::class);
 
 beforeEach(function () {
+    $this->setUpRolesAndPermissions();
+
     $this->userRepository = m::mock(UserRepositoryInterface::class);
     $this->authManager = m::mock(AuthManager::class);
     $this->roleService = m::mock(UserRoleService::class);
@@ -23,9 +30,9 @@ beforeEach(function () {
         $this->roleService
     );
 
-    $this->admin = m::mock(User::class);
-    $this->admin->shouldReceive('hasRole')->with('admin')->andReturn(true);
-    $this->admin->id = 1;
+    // Create real admin user for testing
+    $this->admin = User::factory()->create();
+    $this->admin->assignRole('admin');
 });
 
 afterEach(function () {
@@ -42,7 +49,8 @@ describe('getUsers', function () {
             sortDirection: 'asc'
         );
 
-        $expectedPaginator = m::mock(LengthAwarePaginator::class);
+        $users = User::factory()->count(3)->make();
+        $expectedPaginator = new LengthAwarePaginator($users, 3, 10);
 
         $this->userRepository
             ->shouldReceive('paginateWithFilters')
@@ -58,7 +66,8 @@ describe('getUsers', function () {
     it('returns paginated users with default filters', function () {
         $filters = new UserFiltersDTO();
 
-        $expectedPaginator = m::mock(LengthAwarePaginator::class);
+        $users = User::factory()->count(3)->make();
+        $expectedPaginator = new LengthAwarePaginator($users, 3, 15);
 
         $this->userRepository
             ->shouldReceive('paginateWithFilters')
@@ -74,23 +83,22 @@ describe('getUsers', function () {
 
 describe('getUserById', function () {
     it('returns user DTO when user exists', function () {
-        $user = User::factory()->make([
-            'id' => 1,
+        $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
-        $user->id = 1;
+        $user->assignRole('cashier');
 
         $this->userRepository
             ->shouldReceive('findById')
             ->once()
-            ->with(1, ['roles', 'permissions'])
+            ->with($user->id, ['roles', 'permissions'])
             ->andReturn($user);
 
-        $result = $this->userService->getUserById(1);
+        $result = $this->userService->getUserById($user->id);
 
         expect($result)->not->toBeNull();
-        expect($result->id)->toBe(1);
+        expect($result->id)->toBe($user->id);
         expect($result->name)->toBe('Test User');
         expect($result->email)->toBe('test@example.com');
     });
@@ -118,12 +126,11 @@ describe('createUser', function () {
             roles: ['cashier']
         );
 
-        $createdUser = User::factory()->make([
-            'id' => 1,
+        $createdUser = User::factory()->create([
             'name' => 'New User',
             'email' => 'new@example.com',
         ]);
-        $createdUser->id = 1;
+        $createdUser->assignRole('cashier');
 
         $this->authManager
             ->shouldReceive('user')
@@ -145,7 +152,7 @@ describe('createUser', function () {
         $result = $this->userService->createUser($dto);
 
         expect($result)->not->toBeNull();
-        expect($result->id)->toBe(1);
+        expect($result->id)->toBe($createdUser->id);
         expect($result->name)->toBe('New User');
     });
 
@@ -158,8 +165,8 @@ describe('createUser', function () {
             roles: ['admin']
         );
 
-        $manager = m::mock(User::class);
-        $manager->shouldReceive('hasRole')->with('admin')->andReturn(false);
+        $manager = User::factory()->create();
+        $manager->assignRole('store_manager');
 
         $this->authManager
             ->shouldReceive('user')
@@ -178,12 +185,11 @@ describe('createUser', function () {
             roles: ['admin']
         );
 
-        $createdUser = User::factory()->make([
-            'id' => 1,
+        $createdUser = User::factory()->create([
             'name' => 'New Admin',
             'email' => 'newadmin@example.com',
         ]);
-        $createdUser->id = 1;
+        $createdUser->assignRole('admin');
 
         $this->authManager
             ->shouldReceive('user')
@@ -210,12 +216,11 @@ describe('createUser', function () {
 
 describe('updateUser', function () {
     it('updates user successfully', function () {
-        $existingUser = User::factory()->make([
-            'id' => 1,
+        $existingUser = User::factory()->create([
             'name' => 'Old Name',
             'email' => 'old@example.com',
         ]);
-        $existingUser->id = 1;
+        $existingUser->assignRole('cashier');
 
         $dto = new UpdateUserDTO(
             name: 'Updated Name',
@@ -223,20 +228,19 @@ describe('updateUser', function () {
             password: null,
             passwordConfirmation: null,
             roles: ['cashier'],
-            userId: 1
+            userId: $existingUser->id
         );
 
-        $updatedUser = User::factory()->make([
-            'id' => 1,
+        $updatedUser = User::factory()->create([
             'name' => 'Updated Name',
             'email' => 'updated@example.com',
         ]);
-        $updatedUser->id = 1;
+        $updatedUser->assignRole('cashier');
 
         $this->userRepository
             ->shouldReceive('findById')
             ->once()
-            ->with(1)
+            ->with($existingUser->id)
             ->andReturn($existingUser);
 
         $this->authManager
@@ -251,12 +255,12 @@ describe('updateUser', function () {
         $this->userRepository
             ->shouldReceive('update')
             ->once()
-            ->with(1, $dto)
+            ->with($existingUser->id, $dto)
             ->andReturn($updatedUser);
 
         Log::shouldReceive('info')->once();
 
-        $result = $this->userService->updateUser(1, $dto);
+        $result = $this->userService->updateUser($existingUser->id, $dto);
 
         expect($result)->not->toBeNull();
         expect($result->name)->toBe('Updated Name');
@@ -284,9 +288,8 @@ describe('updateUser', function () {
     });
 
     it('throws exception when non-admin tries to update admin user', function () {
-        $adminUser = m::mock(User::class);
-        $adminUser->id = 2;
-        $adminUser->shouldReceive('hasRole')->with('admin')->andReturn(true);
+        $adminUser = User::factory()->create();
+        $adminUser->assignRole('admin');
 
         $dto = new UpdateUserDTO(
             name: 'Trying to Update',
@@ -294,42 +297,39 @@ describe('updateUser', function () {
             password: null,
             passwordConfirmation: null,
             roles: ['admin'],
-            userId: 2
+            userId: $adminUser->id
         );
 
-        $manager = m::mock(User::class);
-        $manager->id = 1;
-        $manager->shouldReceive('hasRole')->with('admin')->andReturn(false);
+        $manager = User::factory()->create();
+        $manager->assignRole('store_manager');
 
         $this->userRepository
             ->shouldReceive('findById')
             ->once()
-            ->with(2)
+            ->with($adminUser->id)
             ->andReturn($adminUser);
 
         $this->authManager
             ->shouldReceive('user')
             ->andReturn($manager);
 
-        expect(fn () => $this->userService->updateUser(2, $dto))
+        expect(fn () => $this->userService->updateUser($adminUser->id, $dto))
             ->toThrow(\Illuminate\Auth\Access\AuthorizationException::class);
     });
 });
 
 describe('deleteUser', function () {
     it('deletes user successfully', function () {
-        $user = User::factory()->make([
-            'id' => 2,
+        $user = User::factory()->create([
             'name' => 'User to Delete',
             'email' => 'delete@example.com',
         ]);
-        $user->id = 2;
-        $user->shouldReceive('hasRole')->with('admin')->andReturn(false);
+        $user->assignRole('cashier');
 
         $this->userRepository
             ->shouldReceive('findById')
             ->once()
-            ->with(2)
+            ->with($user->id)
             ->andReturn($user);
 
         $this->authManager
@@ -339,12 +339,12 @@ describe('deleteUser', function () {
         $this->userRepository
             ->shouldReceive('delete')
             ->once()
-            ->with(2)
+            ->with($user->id)
             ->andReturn(true);
 
         Log::shouldReceive('warning')->once();
 
-        $result = $this->userService->deleteUser(2);
+        $result = $this->userService->deleteUser($user->id);
 
         expect($result)->toBeTrue();
     });
@@ -362,59 +362,49 @@ describe('deleteUser', function () {
     });
 
     it('throws exception when user tries to delete themselves', function () {
-        $user = User::factory()->make([
-            'id' => 1,
-            'name' => 'Self User',
-            'email' => 'self@example.com',
-        ]);
-        $user->id = 1;
-
         $this->userRepository
             ->shouldReceive('findById')
             ->once()
-            ->with(1)
-            ->andReturn($user);
+            ->with($this->admin->id)
+            ->andReturn($this->admin);
 
         $this->authManager
             ->shouldReceive('user')
-            ->andReturn($user);
+            ->andReturn($this->admin);
 
-        expect(fn () => $this->userService->deleteUser(1))
+        expect(fn () => $this->userService->deleteUser($this->admin->id))
             ->toThrow(\Illuminate\Auth\Access\AuthorizationException::class, 'You cannot delete your own account.');
     });
 
     it('throws exception when non-admin tries to delete admin', function () {
-        $adminUser = m::mock(User::class);
-        $adminUser->id = 2;
-        $adminUser->shouldReceive('hasRole')->with('admin')->andReturn(true);
+        $adminUser = User::factory()->create();
+        $adminUser->assignRole('admin');
 
-        $manager = m::mock(User::class);
-        $manager->id = 1;
-        $manager->shouldReceive('hasRole')->with('admin')->andReturn(false);
+        $manager = User::factory()->create();
+        $manager->assignRole('store_manager');
 
         $this->userRepository
             ->shouldReceive('findById')
             ->once()
-            ->with(2)
+            ->with($adminUser->id)
             ->andReturn($adminUser);
 
         $this->authManager
             ->shouldReceive('user')
             ->andReturn($manager);
 
-        expect(fn () => $this->userService->deleteUser(2))
+        expect(fn () => $this->userService->deleteUser($adminUser->id))
             ->toThrow(\Illuminate\Auth\Access\AuthorizationException::class, 'Only administrators can delete admin users.');
     });
 
     it('allows admin to delete another admin', function () {
-        $otherAdmin = m::mock(User::class);
-        $otherAdmin->id = 2;
-        $otherAdmin->shouldReceive('hasRole')->with('admin')->andReturn(true);
+        $otherAdmin = User::factory()->create();
+        $otherAdmin->assignRole('admin');
 
         $this->userRepository
             ->shouldReceive('findById')
             ->once()
-            ->with(2)
+            ->with($otherAdmin->id)
             ->andReturn($otherAdmin);
 
         $this->authManager
@@ -424,25 +414,19 @@ describe('deleteUser', function () {
         $this->userRepository
             ->shouldReceive('delete')
             ->once()
-            ->with(2)
+            ->with($otherAdmin->id)
             ->andReturn(true);
 
         Log::shouldReceive('warning')->once();
 
-        // Note: This might actually throw exception based on the implementation
-        // The test reveals the actual behavior
-        try {
-            $result = $this->userService->deleteUser(2);
-            expect($result)->toBeTrue();
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            expect($e->getMessage())->toBe('You cannot delete your own account.');
-        }
+        $result = $this->userService->deleteUser($otherAdmin->id);
+        expect($result)->toBeTrue();
     });
 });
 
 describe('searchUsers', function () {
     it('returns users matching search query', function () {
-        $users = User::factory()->count(3)->make();
+        $users = User::factory()->count(3)->create();
 
         $this->userRepository
             ->shouldReceive('searchUsers')
@@ -457,7 +441,7 @@ describe('searchUsers', function () {
     });
 
     it('returns users with additional filters', function () {
-        $users = User::factory()->count(2)->make();
+        $users = User::factory()->count(2)->create();
 
         $this->userRepository
             ->shouldReceive('searchUsers')
@@ -473,7 +457,7 @@ describe('searchUsers', function () {
 
 describe('getUsersByRole', function () {
     it('returns users by role without limit', function () {
-        $users = User::factory()->count(5)->make();
+        $users = User::factory()->count(5)->create();
 
         $this->userRepository
             ->shouldReceive('getUsersByRole')
@@ -488,7 +472,7 @@ describe('getUsersByRole', function () {
     });
 
     it('returns users by role with limit', function () {
-        $users = User::factory()->count(3)->make();
+        $users = User::factory()->count(3)->create();
 
         $this->userRepository
             ->shouldReceive('getUsersByRole')

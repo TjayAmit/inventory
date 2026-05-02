@@ -21,7 +21,7 @@ class ProductAPIController extends Controller
     public function __construct(ProductService $productService)
     {
         $this->productService = $productService;
-        $this->middleware('auth:sanctum');
+        $this->middleware('auth'); // Using web auth instead of sanctum
         $this->middleware('permission:product.view')->only(['index', 'show']);
         $this->middleware('permission:product.create')->only(['store']);
         $this->middleware('permission:product.edit')->only(['update']);

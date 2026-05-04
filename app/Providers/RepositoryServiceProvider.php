@@ -3,41 +3,49 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use App\Repositories\Interfaces\ModelRepository;
-use App\Repositories\Eloquent\EloquentModelRepository;
-use App\Repositories\Interfaces\UserRepository;
-use App\Repositories\Eloquent\EloquentUserRepository;
-use App\Repositories\Interfaces\ProductRepository;
-use App\Repositories\Eloquent\EloquentProductRepository;
-use App\Repositories\Interfaces\BranchRepository;
-use App\Repositories\Eloquent\EloquentBranchRepository;
-use App\Repositories\Interfaces\InventoryRepository;
-use App\Repositories\Eloquent\EloquentInventoryRepository;
-use App\Repositories\Interfaces\SupplierRepository;
-use App\Repositories\Eloquent\EloquentSupplierRepository;
-use App\Repositories\Interfaces\PurchaseOrderRepository;
-use App\Repositories\Eloquent\EloquentPurchaseOrderRepository;
-use App\Repositories\Interfaces\SalesOrderRepository;
-use App\Repositories\Eloquent\EloquentSalesOrderRepository;
-use App\Repositories\Interfaces\InventoryAdjustmentRepository;
-use App\Repositories\Eloquent\EloquentInventoryAdjustmentRepository;
-use App\Repositories\Interfaces\InventoryBatchRepository;
-use App\Repositories\Eloquent\EloquentInventoryBatchRepository;
-use App\Repositories\Interfaces\PurchaseOrderItemRepository;
-use App\Repositories\Eloquent\EloquentPurchaseOrderItemRepository;
-use App\Repositories\Interfaces\SalesItemRepository;
-use App\Repositories\Eloquent\EloquentSalesItemRepository;
-use App\Models\User;
-use App\Models\Product;
-use App\Models\Branch;
-use App\Models\Inventory;
-use App\Models\Supplier;
-use App\Models\PurchaseOrder;
-use App\Models\SalesOrder;
-use App\Models\InventoryAdjustment;
-use App\Models\InventoryBatch;
-use App\Models\PurchaseOrderItem;
-use App\Models\SalesItem;
+use App\Repositories\Interfaces\{
+    ModelRepository,
+    UserRepository,
+    ProductRepository,
+    BranchRepository,
+    InventoryRepository,
+    SupplierRepository,
+    PurchaseOrderRepository,
+    SalesOrderRepository,
+    InventoryAdjustmentRepository,
+    InventoryBatchRepository,
+    PurchaseOrderItemRepository,
+    SalesItemRepository,
+
+};
+use App\Repositories\Eloquent\{
+    EloquentModelRepository,
+    EloquentUserRepository,
+    EloquentProductRepository,
+    EloquentBranchRepository,
+    EloquentInventoryRepository,
+    EloquentSupplierRepository,
+    EloquentPurchaseOrderRepository,
+    EloquentSalesOrderRepository,
+    EloquentInventoryAdjustmentRepository,
+    EloquentInventoryBatchRepository,
+    EloquentPurchaseOrderItemRepository,
+    EloquentSalesItemRepository
+};
+
+use App\Models\{
+    User,
+    Product,
+    Branch,
+    Inventory,
+    Supplier,
+    PurchaseOrder,
+    SalesOrder,
+    InventoryAdjustment,
+    InventoryBatch,
+    PurchaseOrderItem,
+    SalesItem
+};
 
 class RepositoryServiceProvider extends ServiceProvider
 {

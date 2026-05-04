@@ -16,9 +16,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PermissionSeeder::class,
             RoleSeeder::class,
-            RolePermissionSeeder::class,
-            CategorySeeder::class,
-            ProductSeeder::class,
+            RolePermissionSeeder::class
         ]);
 
         // Create admin user

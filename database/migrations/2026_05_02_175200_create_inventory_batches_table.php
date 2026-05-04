@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('inventory_id')->constrained('inventory')->cascadeOnDelete();
             $table->string('batch_number', 100)->unique();
-            $table->foreignId('purchase_order_item_id')->nullable()->constrained('purchase_order_items')->nullOnDelete();
+            $table->foreignId('purchase_order_item_id')->nullable();
             $table->integer('quantity');
             $table->integer('quantity_remaining');
             $table->decimal('unit_cost', 10, 4);

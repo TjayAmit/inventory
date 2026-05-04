@@ -14,40 +14,22 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+import { usePermission } from '@/hooks/use-permission';
+import type { NavGroup, NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
+
+const navGroups: NavGroup[] = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-        permission: 'view dashboard',
+        title: 'Overview',
+        items: [
+            {
+                title: 'Dashboard',
+                href: dashboard(),
+                icon: LayoutGrid,
+            },
+        ],
     },
-    {
-        title: 'Users',
-        href: '/users',
-        icon: Users,
-        permission: 'view users',
-    },
-    {
-        title: 'Products',
-        href: '/products',
-        icon: Package,
-        permission: 'view products',
-    },
-    {
-        title: 'Categories',
-        href: '/categories',
-        icon: Folder,
-        permission: 'view categories',
-    },
-    {
-        title: 'Stock',
-        href: '/stocks',
-        icon: Warehouse,
-        permission: 'view products',
-    },
-];
+]
 
 const footerNavItems: NavItem[] = [
     {
@@ -63,6 +45,16 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { canAccess, hasRole } = usePermission();
+
+    const filteredGroups = navGroups
+        .filter((group) => !group.roles || hasRole(group.roles))
+        .map((group) => ({
+            ...group,
+            items: group.items.filter(canAccess),
+        }))
+        .filter((group) => group.items.length > 0);
+
     return (
         <Sidebar collapsible="icon" variant="sidebar">
             <SidebarHeader>
@@ -78,7 +70,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain groups={filteredGroups} />
             </SidebarContent>
 
             <SidebarFooter>

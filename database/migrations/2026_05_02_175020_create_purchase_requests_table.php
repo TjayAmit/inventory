@@ -25,6 +25,7 @@ return new class extends Migration
 
             $table->index(['branch_id', 'status']);
             $table->index(['product_id', 'status']);
+            $table->index(['deleted_at']);
         });
     }
 

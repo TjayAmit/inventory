@@ -12,30 +12,25 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'order_number',
-    'customer_id',
     'branch_id',
-    'created_by',
     'cashier_id',
-    'status',
-    'payment_status',
-    'order_type',
     'order_date',
+    'order_time',
+    'status',
     'subtotal',
     'tax_amount',
     'discount_amount',
-    'shipping_amount',
     'total_amount',
     'paid_amount',
     'change_amount',
-    'notes',
-    'internal_notes',
-    'customer_reference'
+    'payment_status',
+    'notes'
 ])]
 #[Hidden([])]
 class SalesOrder extends Model
 {
     /** @use HasFactory<SalesOrderFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * Get the attributes that should be cast.
@@ -45,24 +40,15 @@ class SalesOrder extends Model
     protected function casts(): array
     {
         return [
-            'order_date' => 'datetime',
+            'order_date' => 'date',
+            'order_time' => 'time',
             'subtotal' => 'decimal:2',
             'tax_amount' => 'decimal:2',
             'discount_amount' => 'decimal:2',
-            'shipping_amount' => 'decimal:2',
             'total_amount' => 'decimal:2',
             'paid_amount' => 'decimal:2',
             'change_amount' => 'decimal:2',
-            'deleted_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Get the customer that owns the sales order.
-     */
-    public function customer(): BelongsTo
-    {
-        return $this->belongsTo(Customer::class);
     }
 
     /**
@@ -71,14 +57,6 @@ class SalesOrder extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
-    }
-
-    /**
-     * Get the user that created the sales order.
-     */
-    public function creator(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
@@ -98,14 +76,6 @@ class SalesOrder extends Model
     }
 
     /**
-     * Get the payments for the sales order.
-     */
-    public function payments(): HasMany
-    {
-        return $this->hasMany(Payment::class);
-    }
-
-    /**
      * Scope a query to only include orders with specific status.
      */
     public function scopeStatus($query, $status)
@@ -119,22 +89,6 @@ class SalesOrder extends Model
     public function scopePending($query)
     {
         return $query->where('status', 'pending');
-    }
-
-    /**
-     * Scope a query to only include confirmed orders.
-     */
-    public function scopeConfirmed($query)
-    {
-        return $query->where('status', 'confirmed');
-    }
-
-    /**
-     * Scope a query to only include paid orders.
-     */
-    public function scopePaid($query)
-    {
-        return $query->where('payment_status', 'paid');
     }
 
     /**
@@ -159,30 +113,6 @@ class SalesOrder extends Model
     public function scopeRefunded($query)
     {
         return $query->where('status', 'refunded');
-    }
-
-    /**
-     * Scope a query to only include sales.
-     */
-    public function scopeSales($query)
-    {
-        return $query->where('order_type', 'sale');
-    }
-
-    /**
-     * Scope a query to only include returns.
-     */
-    public function scopeReturns($query)
-    {
-        return $query->where('order_type', 'return');
-    }
-
-    /**
-     * Scope a query to only include exchanges.
-     */
-    public function scopeExchanges($query)
-    {
-        return $query->where('order_type', 'exchange');
     }
 
     /**
@@ -239,18 +169,6 @@ class SalesOrder extends Model
     }
 
     /**
-     * Get the order type label.
-     */
-    public function getOrderTypeLabelAttribute(): string
-    {
-        return [
-            'sale' => 'Sale',
-            'return' => 'Return',
-            'exchange' => 'Exchange',
-        ][$this->order_type] ?? $this->order_type;
-    }
-
-    /**
      * Get the total quantity of all items.
      */
     public function getTotalQuantityAttribute(): int
@@ -263,7 +181,7 @@ class SalesOrder extends Model
      */
     public function getTotalProfitAttribute(): float
     {
-        return $this->items->sum('line_profit');
+        return $this->items->sum('profit');
     }
 
     /**
@@ -271,7 +189,7 @@ class SalesOrder extends Model
      */
     public function getTotalCostAttribute(): float
     {
-        return $this->items->sum('line_cost');
+        return $this->items->sum('total_cost');
     }
 
     /**

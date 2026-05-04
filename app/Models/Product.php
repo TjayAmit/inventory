@@ -16,25 +16,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'name',
     'slug',
     'description',
-    'short_description',
     'category_id',
     'brand',
-    'model',
     'unit',
-    'weight',
-    'dimensions',
     'cost_price',
     'selling_price',
     'min_price',
-    'max_price',
     'reorder_level',
     'reorder_quantity',
     'is_active',
     'is_taxable',
     'is_trackable',
-    'is_sellable',
-    'image_urls',
-    'attributes'
+    'image_urls'
 ])]
 #[Hidden([])]
 class Product extends Model
@@ -53,17 +46,12 @@ class Product extends Model
             'cost_price' => 'decimal:2',
             'selling_price' => 'decimal:2',
             'min_price' => 'decimal:2',
-            'max_price' => 'decimal:2',
-            'weight' => 'decimal:3',
             'reorder_level' => 'integer',
             'reorder_quantity' => 'integer',
             'is_active' => 'boolean',
             'is_taxable' => 'boolean',
             'is_trackable' => 'boolean',
-            'is_sellable' => 'boolean',
             'image_urls' => 'array',
-            'attributes' => 'array',
-            'deleted_at' => 'datetime',
         ];
     }
 
@@ -108,27 +96,11 @@ class Product extends Model
     }
 
     /**
-     * Get the inventory transfers for the product.
-     */
-    public function inventoryTransfers(): HasMany
-    {
-        return $this->hasMany(InventoryTransfer::class);
-    }
-
-    /**
      * Scope a query to only include active products.
      */
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope a query to only include sellable products.
-     */
-    public function scopeSellable($query)
-    {
-        return $query->where('is_sellable', true);
     }
 
     /**
@@ -160,7 +132,9 @@ class Product extends Model
      */
     public function getTotalStockValueAttribute(): float
     {
-        return $this->inventory()->sum('total_cost');
+        return $this->inventory()->sum(function ($inventory) {
+            return $inventory->quantity_on_hand * $inventory->average_cost;
+        });
     }
 
     /**

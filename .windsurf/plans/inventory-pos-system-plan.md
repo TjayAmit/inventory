@@ -53,7 +53,7 @@ Point of Sale operations.
 
 - As a Cashier, I can search and scan products to add them to a sale
 - As a Cashier, I can apply discounts within my allowed threshold
-- As a Cashier, I can accept multiple payment methods (cash, card, GCash, etc.)
+- As a Cashier, I can accept cash payments and calculate change
 - As a Cashier, I can void or cancel a sale before completion
 - As a Cashier, I can print or send a receipt
 - As a Cashier, I can view my daily sales summary
@@ -75,10 +75,10 @@ Point of Sale operations.
 | purchase_order_items | Line items within a purchase order |
 | sales_orders | POS transaction records (anonymous) |
 | sales_items | Line items within a sale (FIFO cost allocated) |
-| payments | Payment method records per sale |
+| payments | REMOVED - cash only system |
 | inventory_adjustments | Manual stock corrections with reason codes |
 
-**Removed**: customers, price lists, transfers (future phases)
+**Removed**: customers, price lists, transfers, payment services (future phases)
 
 ---
 
@@ -95,7 +95,6 @@ Point of Sale operations.
 - **inventory_batches** → **purchase_order_items**: Receiving links batch to PO line
 - **sales_orders** → **branches** + **users**: Branch and cashier
 - **sales_items** → **sales_orders** + **products** + **inventory_batches**: FIFO cost allocation
-- **payments** → **sales_orders**: One or many payments per order
 - **inventory_adjustments** → **inventory** + **users**: Approved corrections
 
 ---
@@ -319,17 +318,7 @@ Auto-generated when `quantity_on_hand ≤ reorder_level`, or created manually by
 | profit | decimal(10,2) | NO | total_price - total_cost |
 | timestamps | | | |
 
-### payments
-
-| Column | Type | Nullable | Notes |
-|---|---|---|---|
-| id | bigint unsigned | NO | PK |
-| sales_order_id | bigint unsigned | NO | FK → sales_orders, CASCADE |
-| payment_method | varchar(50) | NO | cash/card/gcash/etc — lookup |
-| amount | decimal(10,2) | NO | |
-| reference_number | varchar(100) | YES | card/e-wallet ref |
-| processed_at | timestamp | NO | |
-| timestamps | | | |
+ |
 
 ### inventory_adjustments
 
@@ -411,8 +400,7 @@ inventory.quantity_on_hand updated, inventory_batches.quantity_remaining set
 12. `inventory_batches` FK update — link purchase_order_items
 13. `sales_orders` — needs branches, users
 14. `sales_items` — needs sales_orders, products, inventory_batches
-15. `payments` — needs sales_orders
-16. `inventory_adjustments` — needs inventory, users
+15. `inventory_adjustments` — needs inventory, users
 
 ---
 
@@ -439,6 +427,7 @@ inventory.quantity_on_hand updated, inventory_batches.quantity_remaining set
 - [ ] `quantity_available` stays consistent: enforced at service layer, not DB
 - [ ] FIFO: `inventory_batches` always ordered by `received_date ASC` at query time
 - [ ] No customer data stored anywhere
+- [ ] Cash-only system - no payment methods or payment services
 - [ ] PR auto-generation is idempotent — checks for existing open request before creating
 
 ---

@@ -1,45 +1,43 @@
 <?php
 
-namespace App\DTOs\SalesOrder;
+namespace App\DTOs\PurchaseOrder;
 
 use Illuminate\Http\Request;
 
-class SalesOrderData
+class PurchaseOrderData
 {
     public function __construct(
         public readonly string $order_number,
+        public readonly int $supplier_id,
         public readonly int $branch_id,
-        public readonly int $cashier_id,
+        public readonly int $created_by,
         public readonly string $order_date,
-        public readonly string $order_time,
-        public readonly string $status = 'pending',
+        public readonly ?string $expected_date = null,
+        public readonly string $status = 'draft',
         public readonly float $subtotal = 0.00,
         public readonly float $tax_amount = 0.00,
-        public readonly float $discount_amount = 0.00,
         public readonly float $total_amount = 0.00,
-        public readonly float $paid_amount = 0.00,
-        public readonly float $change_amount = 0.00,
-        public readonly string $payment_status = 'pending',
         public readonly ?string $notes = null,
+        public readonly ?string $cancelled_at = null,
+        public readonly ?int $cancelled_by = null,
     ) {}
 
     public static function fromRequest(Request $request): self
     {
         return new self(
             order_number: $request->validated('order_number'),
+            supplier_id: $request->validated('supplier_id'),
             branch_id: $request->validated('branch_id'),
-            cashier_id: $request->validated('cashier_id'),
+            created_by: $request->validated('created_by'),
             order_date: $request->validated('order_date'),
-            order_time: $request->validated('order_time'),
-            status: $request->validated('status', 'pending'),
+            expected_date: $request->validated('expected_date'),
+            status: $request->validated('status', 'draft'),
             subtotal: $request->validated('subtotal'),
             tax_amount: $request->validated('tax_amount'),
-            discount_amount: $request->validated('discount_amount'),
             total_amount: $request->validated('total_amount'),
-            paid_amount: $request->validated('paid_amount'),
-            change_amount: $request->validated('change_amount'),
-            payment_status: $request->validated('payment_status', 'pending'),
             notes: $request->validated('notes'),
+            cancelled_at: $request->validated('cancelled_at'),
+            cancelled_by: $request->validated('cancelled_by'),
         );
     }
 

@@ -21,6 +21,8 @@ return new class extends Migration
             $table->timestamp('approved_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index(['deleted_at']);
         });
     }
 

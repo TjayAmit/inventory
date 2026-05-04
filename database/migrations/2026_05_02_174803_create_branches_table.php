@@ -27,6 +27,8 @@ return new class extends Migration
             $table->decimal('tax_rate', 5, 4)->nullable()->default(0);
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index(['deleted_at']);
         });
     }
 

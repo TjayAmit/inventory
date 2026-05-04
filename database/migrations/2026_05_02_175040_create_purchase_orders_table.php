@@ -29,6 +29,7 @@ return new class extends Migration
             $table->index(['branch_id', 'status']);
             $table->index('supplier_id');
             $table->index('order_date');
+            $table->index(['deleted_at']);
         });
     }
 

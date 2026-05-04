@@ -16,11 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'quantity_on_hand',
     'quantity_reserved',
     'quantity_available',
-    'reorder_point',
-    'max_stock',
-    'min_stock',
     'average_cost',
-    'total_cost',
     'last_count_date',
     'last_received_date',
     'is_active'
@@ -29,7 +25,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Inventory extends Model
 {
     /** @use HasFactory<InventoryFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * Get the attributes that should be cast.
@@ -42,15 +38,10 @@ class Inventory extends Model
             'quantity_on_hand' => 'integer',
             'quantity_reserved' => 'integer',
             'quantity_available' => 'integer',
-            'reorder_point' => 'integer',
-            'max_stock' => 'integer',
-            'min_stock' => 'integer',
             'average_cost' => 'decimal:4',
-            'total_cost' => 'decimal:2',
             'last_count_date' => 'date',
             'last_received_date' => 'date',
             'is_active' => 'boolean',
-            'deleted_at' => 'datetime',
         ];
     }
 
@@ -107,7 +98,11 @@ class Inventory extends Model
      */
     public function scopeLowStock($query)
     {
-        return $query->where('quantity_on_hand', '<=', 'reorder_point');
+        return $query->where('quantity_on_hand', '<=', function ($query) {
+            $query->select('reorder_level')
+                  ->from('products')
+                  ->whereColumn('products.id', 'inventory.product_id');
+        });
     }
 
     /**
@@ -123,7 +118,7 @@ class Inventory extends Model
      */
     public function isLowStock(): bool
     {
-        return $this->quantity_on_hand <= $this->reorder_point;
+        return $this->quantity_on_hand <= $this->product->reorder_level;
     }
 
     /**
@@ -193,8 +188,6 @@ class Inventory extends Model
     public function addStock(int $quantity, float $unitCost): void
     {
         $this->quantity_on_hand += $quantity;
-        $this->total_cost += ($quantity * $unitCost);
-        $this->average_cost = $this->quantity_on_hand > 0 ? $this->total_cost / $this->quantity_on_hand : 0;
         $this->last_received_date = now();
         $this->updateAvailableQuantity();
     }

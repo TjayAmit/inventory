@@ -32,6 +32,7 @@ return new class extends Migration
 
             $table->index('category_id');
             $table->index('is_active');
+            $table->index(['deleted_at']);
         });
     }
 

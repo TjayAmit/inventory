@@ -15,9 +15,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'name',
     'address',
     'city',
-    'state',
-    'postal_code',
-    'country',
     'phone',
     'email',
     'manager_id',
@@ -25,8 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'is_main_branch',
     'timezone',
     'currency',
-    'tax_rate',
-    'operating_hours'
+    'tax_rate'
 ])]
 #[Hidden([])]
 class Branch extends Model
@@ -45,8 +41,6 @@ class Branch extends Model
             'is_active' => 'boolean',
             'is_main_branch' => 'boolean',
             'tax_rate' => 'decimal:4',
-            'operating_hours' => 'array',
-            'deleted_at' => 'datetime',
         ];
     }
 
@@ -96,22 +90,6 @@ class Branch extends Model
     public function inventoryAdjustments(): HasMany
     {
         return $this->hasMany(InventoryAdjustment::class);
-    }
-
-    /**
-     * Get the inventory transfers from the branch.
-     */
-    public function transfersFrom(): HasMany
-    {
-        return $this->hasMany(InventoryTransfer::class, 'from_branch_id');
-    }
-
-    /**
-     * Get the inventory transfers to the branch.
-     */
-    public function transfersTo(): HasMany
-    {
-        return $this->hasMany(InventoryTransfer::class, 'to_branch_id');
     }
 
     /**

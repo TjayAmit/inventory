@@ -15,18 +15,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'supplier_id',
     'branch_id',
     'created_by',
-    'status',
     'order_date',
     'expected_date',
-    'received_date',
+    'status',
     'subtotal',
     'tax_amount',
-    'shipping_cost',
     'total_amount',
-    'paid_amount',
     'notes',
-    'internal_notes',
-    'supplier_reference'
+    'cancelled_at',
+    'cancelled_by'
 ])]
 #[Hidden([])]
 class PurchaseOrder extends Model
@@ -44,13 +41,10 @@ class PurchaseOrder extends Model
         return [
             'order_date' => 'date',
             'expected_date' => 'date',
-            'received_date' => 'date',
+            'cancelled_at' => 'datetime',
             'subtotal' => 'decimal:2',
             'tax_amount' => 'decimal:2',
-            'shipping_cost' => 'decimal:2',
             'total_amount' => 'decimal:2',
-            'paid_amount' => 'decimal:2',
-            'deleted_at' => 'datetime',
         ];
     }
 
@@ -111,14 +105,6 @@ class PurchaseOrder extends Model
     }
 
     /**
-     * Scope a query to only include confirmed orders.
-     */
-    public function scopeConfirmed($query)
-    {
-        return $query->where('status', 'confirmed');
-    }
-
-    /**
      * Scope a query to only include received orders.
      */
     public function scopeReceived($query)
@@ -132,38 +118,6 @@ class PurchaseOrder extends Model
     public function scopeCancelled($query)
     {
         return $query->where('status', 'cancelled');
-    }
-
-    /**
-     * Scope a query to only include unpaid orders.
-     */
-    public function scopeUnpaid($query)
-    {
-        return $query->whereColumn('paid_amount', '<', 'total_amount');
-    }
-
-    /**
-     * Scope a query to only include paid orders.
-     */
-    public function scopePaid($query)
-    {
-        return $query->whereColumn('paid_amount', '>=', 'total_amount');
-    }
-
-    /**
-     * Get the remaining amount to be paid.
-     */
-    public function getRemainingAmountAttribute(): float
-    {
-        return max(0, $this->total_amount - $this->paid_amount);
-    }
-
-    /**
-     * Check if the order is fully paid.
-     */
-    public function isFullyPaid(): bool
-    {
-        return $this->paid_amount >= $this->total_amount;
     }
 
     /**

@@ -7,29 +7,21 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'purchase_order_id',
     'product_id',
-    'batch_number',
+    'purchase_request_id',
     'quantity_ordered',
     'quantity_received',
     'unit_cost',
-    'total_cost',
-    'tax_rate',
-    'tax_amount',
-    'discount_percent',
-    'discount_amount',
-    'line_total',
-    'expiry_date',
-    'notes'
+    'total_cost'
 ])]
 #[Hidden([])]
 class PurchaseOrderItem extends Model
 {
     /** @use HasFactory<PurchaseOrderItemFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * Get the attributes that should be cast.
@@ -43,13 +35,6 @@ class PurchaseOrderItem extends Model
             'quantity_received' => 'integer',
             'unit_cost' => 'decimal:4',
             'total_cost' => 'decimal:2',
-            'tax_rate' => 'decimal:4',
-            'tax_amount' => 'decimal:2',
-            'discount_percent' => 'decimal:2',
-            'discount_amount' => 'decimal:2',
-            'line_total' => 'decimal:2',
-            'expiry_date' => 'date',
-            'deleted_at' => 'datetime',
         ];
     }
 
@@ -67,6 +52,14 @@ class PurchaseOrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the purchase request that owns the item.
+     */
+    public function purchaseRequest(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseRequest::class);
     }
 
     /**
@@ -103,36 +96,6 @@ class PurchaseOrderItem extends Model
         }
 
         return round(($this->quantity_received / $this->quantity_ordered) * 100, 2);
-    }
-
-    /**
-     * Get the formatted unit cost.
-     */
-    public function getFormattedUnitCostAttribute(): string
-    {
-        return number_format($this->unit_cost, 4);
-    }
-
-    /**
-     * Get the formatted line total.
-     */
-    public function getFormattedLineTotalAttribute(): string
-    {
-        return number_format($this->line_total, 2);
-    }
-
-    /**
-     * Get the status label.
-     */
-    public function getStatusLabelAttribute(): string
-    {
-        if ($this->isFullyReceived()) {
-            return 'Received';
-        } elseif ($this->isPartiallyReceived()) {
-            return 'Partially Received';
-        } else {
-            return 'Pending';
-        }
     }
 
     /**

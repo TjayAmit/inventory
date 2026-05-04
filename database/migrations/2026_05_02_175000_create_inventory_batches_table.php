@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('inventory_id')->constrained('inventory')->cascadeOnDelete();
             $table->string('batch_number', 100)->unique();
-            $table->unsignedBigInteger('purchase_order_item_id')->nullable();
+            $table->foreignId('purchase_order_item_id')->nullable()->constrained('purchase_order_items')->nullOnDelete();
             $table->integer('quantity');
             $table->integer('quantity_remaining');
             $table->decimal('unit_cost', 10, 4);
@@ -24,10 +24,12 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['inventory_id', 'received_date']);
             $table->index('expiry_date');
             $table->index('is_active');
+            $table->index(['deleted_at']);
         });
     }
 

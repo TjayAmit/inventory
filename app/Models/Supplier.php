@@ -10,24 +10,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
-    'code',
+    'supplier_code',
     'name',
     'contact_person',
     'email',
     'phone',
-    'mobile',
     'address',
     'city',
-    'state',
-    'postal_code',
-    'country',
-    'tax_id',
-    'website',
-    'notes',
-    'credit_limit',
     'payment_terms',
     'is_active',
-    'is_preferred'
+    'notes'
 ])]
 #[Hidden([])]
 class Supplier extends Model
@@ -43,11 +35,7 @@ class Supplier extends Model
     protected function casts(): array
     {
         return [
-            'credit_limit' => 'decimal:2',
-            'payment_terms' => 'integer',
             'is_active' => 'boolean',
-            'is_preferred' => 'boolean',
-            'deleted_at' => 'datetime',
         ];
     }
 
@@ -68,14 +56,6 @@ class Supplier extends Model
     }
 
     /**
-     * Scope a query to only include preferred suppliers.
-     */
-    public function scopePreferred($query)
-    {
-        return $query->where('is_preferred', true);
-    }
-
-    /**
      * Get the full address as a single string.
      */
     public function getFullAddressAttribute(): string
@@ -83,9 +63,6 @@ class Supplier extends Model
         $parts = array_filter([
             $this->address,
             $this->city,
-            $this->state,
-            $this->postal_code,
-            $this->country
         ]);
 
         return implode(', ', $parts);
@@ -100,27 +77,11 @@ class Supplier extends Model
     }
 
     /**
-     * Get the primary phone number.
-     */
-    public function getPrimaryPhoneAttribute(): ?string
-    {
-        return $this->phone ?: $this->mobile;
-    }
-
-    /**
      * Get the primary email address.
      */
     public function getPrimaryEmailAttribute(): ?string
     {
         return $this->email;
-    }
-
-    /**
-     * Check if supplier has credit limit.
-     */
-    public function hasCreditLimit(): bool
-    {
-        return $this->credit_limit > 0;
     }
 
     /**
@@ -137,23 +98,5 @@ class Supplier extends Model
         }
 
         return "Net {$this->payment_terms}";
-    }
-
-    /**
-     * Check if supplier is within credit limit for a given amount.
-     */
-    public function isWithinCreditLimit(float $amount): bool
-    {
-        if (!$this->hasCreditLimit()) {
-            return true;
-        }
-
-        $currentBalance = $this->purchaseOrders()
-            ->where('status', '!=', 'cancelled')
-            ->sum('total_amount') - $this->purchaseOrders()
-            ->where('status', '!=', 'cancelled')
-            ->sum('paid_amount');
-
-        return ($currentBalance + $amount) <= $this->credit_limit;
     }
 }

@@ -7,6 +7,8 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\SupplierController;
 
 Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -16,6 +18,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 
     Route::resource('branches', BranchController::class);
+
+    // Inventory Routes
+    Route::resource('inventory', InventoryController::class);
+
+    // Supplier Routes
+    Route::resource('suppliers', SupplierController::class);
 
     // User Routes
     Route::get('users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');

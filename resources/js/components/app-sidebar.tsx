@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Users, Package, Folder, Warehouse } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Users, Package, Folder, Warehouse, Building2 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -14,9 +14,10 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as users } from '@/routes/users';
+import { index as branches } from '@/routes/branches';
 import { usePermission } from '@/hooks/use-permission';
 import type { NavGroup, NavItem } from '@/types';
-
 
 const navGroups: NavGroup[] = [
     {
@@ -26,6 +27,25 @@ const navGroups: NavGroup[] = [
                 title: 'Dashboard',
                 href: dashboard(),
                 icon: LayoutGrid,
+            },
+        ],
+    },
+    {
+        title: 'Management',
+        items: [
+            {
+                title: 'Users',
+                href: users(),
+                icon: Users,
+                permissions: ['users.view'],
+                roles: ['admin'],
+            },
+            {
+                title: 'Branches',
+                href: branches(),
+                icon: Building2,
+                permissions: ['branches.view'],
+                roles: ['admin'],
             },
         ],
     },

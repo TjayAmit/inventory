@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Users, Package, Boxes, Building2, Truck, Warehouse } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Users, Package, Boxes, Building2, Truck, Warehouse, ShoppingCart } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -17,7 +17,10 @@ import { dashboard } from '@/routes';
 import { index as users } from '@/routes/users';
 import { index as branches } from '@/routes/branches';
 import { index as inventory } from '@/routes/inventory';
+import { index as products } from '@/routes/products';
 import { index as suppliers } from '@/routes/suppliers';
+import { index as salesOrders } from '@/routes/sales-orders';
+import { index as salesItems } from '@/routes/sales-items';
 import { usePermission } from '@/hooks/use-permission';
 import type { NavGroup, NavItem } from '@/types';
 
@@ -50,6 +53,13 @@ const navGroups: NavGroup[] = [
                 roles: ['admin'],
             },
             {
+                title: 'Products',
+                href: products(),
+                icon: Package,
+                permissions: ['products.view'],
+                roles: ['admin'],
+            },
+            {
                 title: 'Inventory',
                 href: inventory(),
                 icon: Boxes,
@@ -61,6 +71,20 @@ const navGroups: NavGroup[] = [
                 href: suppliers(),
                 icon: Truck,
                 permissions: ['suppliers.view'],
+                roles: ['admin'],
+            },
+            {
+                title: 'Sales Orders',
+                href: salesOrders(),
+                icon: ShoppingCart,
+                permissions: ['sales-orders.view'],
+                roles: ['admin'],
+            },
+            {
+                title: 'Sales Items',
+                href: salesItems(),
+                icon: ShoppingCart,
+                permissions: ['sales-items.view'],
                 roles: ['admin'],
             },
         ],

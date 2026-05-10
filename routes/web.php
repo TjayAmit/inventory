@@ -9,6 +9,8 @@ use App\Http\Controllers\StockController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SalesOrderController;
+use App\Http\Controllers\SalesItemController;
 
 Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -36,6 +38,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('users/{user}/edit', [App\Http\Controllers\UserController::class, 'edit'])->name('users.edit');
     Route::put('users/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('users.update');
     Route::delete('users/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy');
+
+    // Sales Order Routes
+    Route::resource('sales-orders', SalesOrderController::class);
+
+    // Sales Item Routes
+    Route::resource('sales-items', SalesItemController::class);
 });
 
 require __DIR__.'/settings.php';

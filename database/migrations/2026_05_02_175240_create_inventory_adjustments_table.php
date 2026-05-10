@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('inventory_adjustments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('inventory_id')->constrained('inventory')->restrictOnDelete();
+            $table->foreignId('inventory_id')->constrained('inventories')->restrictOnDelete();
             $table->foreignId('adjusted_by')->constrained('users')->restrictOnDelete();
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('reason_code', 50);

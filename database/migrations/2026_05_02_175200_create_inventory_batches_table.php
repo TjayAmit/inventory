@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('inventory_batches', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('inventory_id')->constrained('inventory')->cascadeOnDelete();
+            $table->foreignId('inventory_id')->constrained('inventories')->cascadeOnDelete();
             $table->string('batch_number', 100)->unique();
             $table->foreignId('purchase_order_item_id')->nullable();
             $table->integer('quantity');

@@ -19,6 +19,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('branches', BranchController::class);
 
+    // Product Routes
+    Route::resource('products', ProductController::class);
+
     // Inventory Routes
     Route::resource('inventory', InventoryController::class);
 

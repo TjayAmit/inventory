@@ -31,7 +31,7 @@ export default function Create() {
         <>
             <Head title="Create Supplier" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6 max-w-4xl mx-auto">
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6">
                 <div className="flex items-center gap-4">
                     <Link href={suppliersIndex()}>
                         <Button variant="outline" size="icon">

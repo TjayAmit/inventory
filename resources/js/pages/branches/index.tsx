@@ -118,13 +118,13 @@ export default function Index({ data, filters }: BranchIndexProps) {
             key: 'view',
             icon: <Eye className="w-4 h-4" />,
             label: 'View',
-            onClick: (branch: Branch) => branchesShow(branch.id)
+            onClick: (branch: Branch) => router.get(branchesShow(branch.id)),
         },
         {
             key: 'edit',
             icon: <Pencil className="w-4 h-4" />,
             label: 'Edit',
-            onClick: (branch: Branch) => branchesEdit(branch.id)
+            onClick: (branch: Branch) => router.get(branchesEdit(branch.id)),
         },
         {
             key: 'delete',

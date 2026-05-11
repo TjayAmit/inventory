@@ -136,13 +136,13 @@ export default function Index({ data, filters }: InventoryIndexProps) {
             key: 'view',
             icon: <Eye className="w-4 h-4" />,
             label: 'View',
-            onClick: (item: Inventory) => inventoryShow(item.id)
+            onClick: (item: Inventory) => router.get(inventoryShow(item.id)),
         },
         {
             key: 'edit',
             icon: <Pencil className="w-4 h-4" />,
             label: 'Edit',
-            onClick: (item: Inventory) => inventoryEdit(item.id)
+            onClick: (item: Inventory) => router.get(inventoryEdit(item.id)),
         },
         {
             key: 'delete',

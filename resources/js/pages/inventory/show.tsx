@@ -22,10 +22,10 @@ export default function Show({ inventory }: InventoryShowProps) {
         <>
             <Head title={`Inventory - ${inventory.product?.name || 'Details'}`} />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6 max-w-4xl mx-auto">
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href={inventoryIndex()}>
+                        <Link href={inventoryIndex().url}>
                             <Button variant="outline" size="icon">
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
@@ -43,7 +43,7 @@ export default function Show({ inventory }: InventoryShowProps) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Link href={inventoryEdit(inventory.id)}>
+                        <Link href={inventoryEdit(inventory.id).url}>
                             <Button>
                                 <Edit className="h-4 w-4 mr-2" />
                                 Edit Record

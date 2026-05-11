@@ -138,13 +138,13 @@ export default function Index({ data, filters }: ProductIndexProps) {
             key: 'view',
             icon: <Eye className="w-4 h-4" />,
             label: 'View',
-            onClick: (product: Product) => productsShow(product.id)
+            onClick: (product: Product) => router.get(productsShow(product.id)),
         },
         {
             key: 'edit',
             icon: <Pencil className="w-4 h-4" />,
             label: 'Edit',
-            onClick: (product: Product) => productsEdit(product.id)
+            onClick: (product: Product) => router.get(productsEdit(product.id)),
         },
         {
             key: 'delete',

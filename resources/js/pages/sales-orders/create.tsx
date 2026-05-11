@@ -68,7 +68,7 @@ export default function Create({ branches, cashiers }: SalesOrderFormProps) {
         <>
             <Head title="Create Sales Order" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6 max-w-5xl mx-auto">
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6">
                 <div className="flex items-center gap-4">
                     <Link href={salesOrdersIndex()}>
                         <Button variant="outline" size="icon">

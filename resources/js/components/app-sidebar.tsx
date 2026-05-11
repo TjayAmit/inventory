@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Users, Package, Boxes, Building2, Truck, Warehouse, ShoppingCart } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Users, Package, Boxes, Building2, Truck, ShoppingCart, Receipt } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -36,7 +36,7 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
-        title: 'Management',
+        title: 'Administration',
         items: [
             {
                 title: 'Users',
@@ -52,18 +52,16 @@ const navGroups: NavGroup[] = [
                 permissions: ['branches.view'],
                 roles: ['admin'],
             },
+        ],
+    },
+    {
+        title: 'Catalog',
+        items: [
             {
                 title: 'Products',
                 href: products(),
                 icon: Package,
                 permissions: ['products.view'],
-                roles: ['admin'],
-            },
-            {
-                title: 'Inventory',
-                href: inventory(),
-                icon: Boxes,
-                permissions: ['inventory.view'],
                 roles: ['admin'],
             },
             {
@@ -73,6 +71,23 @@ const navGroups: NavGroup[] = [
                 permissions: ['suppliers.view'],
                 roles: ['admin'],
             },
+        ],
+    },
+    {
+        title: 'Inventory',
+        items: [
+            {
+                title: 'Inventory',
+                href: inventory(),
+                icon: Boxes,
+                permissions: ['inventory.view'],
+                roles: ['admin'],
+            },
+        ],
+    },
+    {
+        title: 'Sales',
+        items: [
             {
                 title: 'Sales Orders',
                 href: salesOrders(),
@@ -83,7 +98,7 @@ const navGroups: NavGroup[] = [
             {
                 title: 'Sales Items',
                 href: salesItems(),
-                icon: ShoppingCart,
+                icon: Receipt,
                 permissions: ['sales-items.view'],
                 roles: ['admin'],
             },

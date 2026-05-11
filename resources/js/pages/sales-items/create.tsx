@@ -29,7 +29,7 @@ export default function Create({ salesOrders, products, inventoryBatches }: Sale
         <>
             <Head title="Create Sales Item" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6 max-w-4xl mx-auto">
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6">
                 <div className="flex items-center gap-4">
                     <Link href={salesItemsIndex()}>
                         <Button variant="outline" size="icon">
@@ -101,7 +101,6 @@ export default function Create({ salesOrders, products, inventoryBatches }: Sale
                                         <SelectValue placeholder="Select a batch (optional)" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">None</SelectItem>
                                         {inventoryBatches.map((batch) => (
                                             <SelectItem key={batch.id} value={String(batch.id)}>
                                                 {batch.batch_number}

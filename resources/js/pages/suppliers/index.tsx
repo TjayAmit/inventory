@@ -110,13 +110,13 @@ export default function Index({ data, filters }: SupplierIndexProps) {
             key: 'view',
             icon: <Eye className="w-4 h-4" />,
             label: 'View',
-            onClick: (supplier: Supplier) => suppliersShow(supplier.id)
+            onClick: (supplier: Supplier) => router.get(suppliersShow(supplier.id)),
         },
         {
             key: 'edit',
             icon: <Pencil className="w-4 h-4" />,
             label: 'Edit',
-            onClick: (supplier: Supplier) => suppliersEdit(supplier.id)
+            onClick: (supplier: Supplier) => router.get(suppliersEdit(supplier.id)),
         },
         {
             key: 'delete',

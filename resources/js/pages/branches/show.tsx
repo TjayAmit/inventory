@@ -12,10 +12,10 @@ export default function Show({ branch }: BranchShowProps) {
         <>
             <Head title={branch.name} />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6 max-w-4xl mx-auto">
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href={branchesIndex()}>
+                        <Link href={branchesIndex().url}>
                             <Button variant="outline" size="icon">
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
@@ -29,7 +29,7 @@ export default function Show({ branch }: BranchShowProps) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Link href={branchesEdit(branch.id)}>
+                        <Link href={branchesEdit(branch.id).url}>
                             <Button>
                                 <Edit className="h-4 w-4 mr-2" />
                                 Edit Branch

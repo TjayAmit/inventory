@@ -39,7 +39,7 @@ export default function Create({ categories }: ProductFormProps) {
         <>
             <Head title="Create Product" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6 max-w-5xl mx-auto">
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6">
                 <div className="flex items-center gap-4">
                     <Link href={productsIndex()}>
                         <Button variant="outline" size="icon">

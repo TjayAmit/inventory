@@ -6,12 +6,21 @@ use App\Models\SalesOrder;
 use App\Repositories\Interfaces\SalesOrderRepository;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class SalesOrderService extends BaseService
 {
     public function __construct(SalesOrderRepository $salesOrderRepository)
     {
         $this->repository = $salesOrderRepository;
+    }
+
+    public function list(Request $request): LengthAwarePaginator
+    {
+        return $this->repository->getPaginated(
+            $request->only(['search', 'status', 'payment_status', 'branch_id']),
+            (int) $request->input('per_page', 10)
+        );
     }
 
     public function create(Request $request): SalesOrder
@@ -21,12 +30,21 @@ class SalesOrderService extends BaseService
 
         $this->executeInTransaction(function () use ($request, &$model, &$data) {
             $data = $request->validated();
+            $data['order_number'] = $this->generateOrderNumber();
             $model = $this->repository->create($data);
         });
 
         $this->logActivity('created', $model, $data);
 
         return $model;
+    }
+
+    private function generateOrderNumber(): string
+    {
+        $prefix = 'SO';
+        $date = now()->format('Ymd');
+        $random = strtoupper(substr(uniqid(), -4));
+        return "{$prefix}-{$date}-{$random}";
     }
 
     public function update(Request $request, SalesOrder $salesOrder): SalesOrder

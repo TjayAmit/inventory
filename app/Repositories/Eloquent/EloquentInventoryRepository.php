@@ -4,12 +4,27 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Inventory;
 use App\Repositories\Interfaces\InventoryRepository;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class EloquentInventoryRepository extends EloquentModelRepository implements InventoryRepository
 {
     public function __construct(Inventory $inventory)
     {
         parent::__construct($inventory);
+    }
+
+    public function getPaginated(array $filters, int $perPage): LengthAwarePaginator
+    {
+        return $this->model->newQuery()->with(['product', 'branch'])
+            ->when(!empty($filters['search']), function ($q) use ($filters) {
+                $s = $filters['search'];
+                $q->whereHas('product', fn ($q) => $q->where('name', 'like', "%{$s}%")
+                    ->orWhere('sku', 'like', "%{$s}%"));
+            })
+            ->when(!empty($filters['branch_id']), fn ($q) => $q->where('branch_id', $filters['branch_id']))
+            ->when(!empty($filters['product_id']), fn ($q) => $q->where('product_id', $filters['product_id']))
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
     }
 
     public function findByProduct(int $productId): \Illuminate\Database\Eloquent\Collection

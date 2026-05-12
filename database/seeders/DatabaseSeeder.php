@@ -2,47 +2,65 @@
 
 namespace Database\Seeders;
 
+use App\Models\Branch;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $this->call([
             PermissionSeeder::class,
             RoleSeeder::class,
-            RolePermissionSeeder::class
+            RolePermissionSeeder::class,
         ]);
 
-        // Create admin user
+        // Default main branch
+        $branch = Branch::create([
+            'code'           => 'HQ-001',
+            'name'           => 'Main Branch',
+            'address'        => '123 Main Street',
+            'city'           => 'Manila',
+            'phone'          => '+63 2 8123 4567',
+            'email'          => 'main@store.com',
+            'is_active'      => true,
+            'is_main_branch' => true,
+            'timezone'       => 'Asia/Manila',
+            'currency'       => 'PHP',
+            'tax_rate'       => 0.12,
+        ]);
+
+        // Admin — system-level access, not tied to a branch
         $admin = User::factory()->create([
-            'name' => 'Admin User',
+            'name'  => 'Admin User',
             'email' => 'admin@example.com',
         ]);
         $admin->assignRole('admin');
 
-        // Create test users for each role
-        $storeManager = User::factory()->create([
-            'name' => 'Store Manager',
-            'email' => 'manager@example.com',
+        // Owner — business owner, assigned to main branch
+        $owner = User::factory()->create([
+            'name'      => 'Store Owner',
+            'email'     => 'owner@example.com',
+            'branch_id' => $branch->id,
         ]);
-        $storeManager->assignRole('store_manager');
+        $owner->assignRole('owner');
+        $branch->update(['manager_id' => $owner->id]);
 
+        // Staff (store manager) — assigned to main branch
+        $staff = User::factory()->create([
+            'name'      => 'Store Manager',
+            'email'     => 'manager@example.com',
+            'branch_id' => $branch->id,
+        ]);
+        $staff->assignRole('store_manager');
+
+        // Cashier — assigned to main branch
         $cashier = User::factory()->create([
-            'name' => 'Cashier User',
-            'email' => 'cashier@example.com',
+            'name'      => 'Cashier User',
+            'email'     => 'cashier@example.com',
+            'branch_id' => $branch->id,
         ]);
         $cashier->assignRole('cashier');
-
-        $warehouseStaff = User::factory()->create([
-            'name' => 'Warehouse Staff',
-            'email' => 'warehouse@example.com',
-        ]);
-        $warehouseStaff->assignRole('warehouse_staff');
     }
 }

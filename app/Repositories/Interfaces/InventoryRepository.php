@@ -3,16 +3,19 @@
 namespace App\Repositories\Interfaces;
 
 use App\Models\Inventory;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 interface InventoryRepository extends ModelRepository
 {
+    public function getPaginated(array $filters, int $perPage): LengthAwarePaginator;
+
     public function findByProduct(int $productId): \Illuminate\Database\Eloquent\Collection;
-    
+
     public function findByBranch(int $branchId): \Illuminate\Database\Eloquent\Collection;
-    
+
     public function findByProductAndBranch(int $productId, int $branchId): ?Inventory;
-    
+
     public function updateQuantity(int $id, int $quantity): Inventory;
-    
+
     public function getLowStockItems(int $threshold = 10): \Illuminate\Database\Eloquent\Collection;
 }

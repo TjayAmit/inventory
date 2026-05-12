@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Model;
     'paid_amount',
     'change_amount',
     'payment_status',
+    'payment_method',
     'notes'
 ])]
 #[Hidden([])]
@@ -42,7 +43,7 @@ class SalesOrder extends Model
     {
         return [
             'order_date' => 'date',
-            'order_time' => 'time',
+            'order_time' => 'string',
             'subtotal' => 'decimal:2',
             'tax_amount' => 'decimal:2',
             'discount_amount' => 'decimal:2',

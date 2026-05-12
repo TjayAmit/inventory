@@ -7,3 +7,6 @@ export type * from './sales-order';
 export type * from './supplier';
 export type * from './ui';
 export type * from './users';
+export type * from './personnel';
+export type * from './invoice';
+export type * from './transaction';

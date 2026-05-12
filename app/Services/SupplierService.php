@@ -6,12 +6,21 @@ use App\Models\Supplier;
 use App\Repositories\Interfaces\SupplierRepository;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class SupplierService extends BaseService
 {
     public function __construct(SupplierRepository $supplierRepository)
     {
         $this->repository = $supplierRepository;
+    }
+
+    public function list(Request $request): LengthAwarePaginator
+    {
+        return $this->repository->getPaginated(
+            $request->only(['search', 'is_active']),
+            (int) $request->input('per_page', 10)
+        );
     }
 
     public function create(Request $request): Supplier

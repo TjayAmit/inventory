@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class PersonnelResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        return [
+            'id'            => $this->id,
+            'name'          => $this->name,
+            'email'         => $this->email,
+            'phone'         => $this->phone,
+            'branch_id'     => $this->branch_id,
+            'branch'        => $this->when($this->relationLoaded('branch') && $this->branch, [
+                'id'   => $this->branch?->id,
+                'name' => $this->branch?->name,
+                'code' => $this->branch?->code,
+            ]),
+            'roles'         => $this->when($this->relationLoaded('roles'), fn() =>
+                $this->roles->pluck('name')
+            ),
+            'is_active'     => $this->is_active,
+            'last_login_at' => $this->last_login_at?->toISOString(),
+            'created_at'    => $this->created_at->toISOString(),
+            'updated_at'    => $this->updated_at->toISOString(),
+        ];
+    }
+}

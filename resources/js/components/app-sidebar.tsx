@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Users, Package, Boxes, Building2, Truck, ShoppingCart, Receipt } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Users, Package, Boxes, Building2, Truck, ShoppingCart, FileText, UserCog } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -20,9 +20,12 @@ import { index as inventory } from '@/routes/inventory';
 import { index as products } from '@/routes/products';
 import { index as suppliers } from '@/routes/suppliers';
 import { index as salesOrders } from '@/routes/sales-orders';
-import { index as salesItems } from '@/routes/sales-items';
+import { index as invoices } from '@/routes/invoices';
+import { index as personnel } from '@/routes/personnel';
 import { usePermission } from '@/hooks/use-permission';
 import type { NavGroup, NavItem } from '@/types';
+
+const ALL_STAFF = ['admin', 'owner', 'store_manager', 'cashier', 'warehouse_staff'] as const;
 
 const navGroups: NavGroup[] = [
     {
@@ -42,15 +45,19 @@ const navGroups: NavGroup[] = [
                 title: 'Users',
                 href: users(),
                 icon: Users,
-                permissions: ['users.view'],
                 roles: ['admin'],
             },
             {
                 title: 'Branches',
                 href: branches(),
                 icon: Building2,
-                permissions: ['branches.view'],
-                roles: ['admin'],
+                roles: ['admin', 'owner'],
+            },
+            {
+                title: 'Personnel',
+                href: personnel(),
+                icon: UserCog,
+                roles: ['admin', 'owner'],
             },
         ],
     },
@@ -61,15 +68,13 @@ const navGroups: NavGroup[] = [
                 title: 'Products',
                 href: products(),
                 icon: Package,
-                permissions: ['products.view'],
-                roles: ['admin'],
+                roles: [...ALL_STAFF],
             },
             {
                 title: 'Suppliers',
                 href: suppliers(),
                 icon: Truck,
-                permissions: ['suppliers.view'],
-                roles: ['admin'],
+                roles: ['admin', 'owner', 'store_manager'],
             },
         ],
     },
@@ -80,8 +85,7 @@ const navGroups: NavGroup[] = [
                 title: 'Inventory',
                 href: inventory(),
                 icon: Boxes,
-                permissions: ['inventory.view'],
-                roles: ['admin'],
+                roles: ['admin', 'owner', 'store_manager', 'warehouse_staff'],
             },
         ],
     },
@@ -92,15 +96,13 @@ const navGroups: NavGroup[] = [
                 title: 'Sales Orders',
                 href: salesOrders(),
                 icon: ShoppingCart,
-                permissions: ['sales-orders.view'],
-                roles: ['admin'],
+                roles: ['admin', 'owner', 'store_manager'],
             },
             {
-                title: 'Sales Items',
-                href: salesItems(),
-                icon: Receipt,
-                permissions: ['sales-items.view'],
-                roles: ['admin'],
+                title: 'Invoice',
+                href: invoices(),
+                icon: FileText,
+                roles: ['admin', 'owner', 'store_manager', 'cashier'],
             },
         ],
     },

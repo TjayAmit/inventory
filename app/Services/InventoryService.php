@@ -6,12 +6,21 @@ use App\Models\Inventory;
 use App\Repositories\Interfaces\InventoryRepository;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class InventoryService extends BaseService
 {
     public function __construct(InventoryRepository $inventoryRepository)
     {
         $this->repository = $inventoryRepository;
+    }
+
+    public function list(Request $request): LengthAwarePaginator
+    {
+        return $this->repository->getPaginated(
+            $request->only(['search', 'branch_id', 'product_id']),
+            (int) $request->input('per_page', 10)
+        );
     }
 
     public function create(Request $request): Inventory
@@ -21,6 +30,7 @@ class InventoryService extends BaseService
 
         $this->executeInTransaction(function () use ($request, &$model, &$data) {
             $data = $request->validated();
+            $data['quantity_available'] = $data['quantity_on_hand'] - ($data['quantity_reserved'] ?? 0);
             $model = $this->repository->create($data);
         });
 
@@ -37,6 +47,7 @@ class InventoryService extends BaseService
 
         $this->executeInTransaction(function () use ($request, $inventory, &$data, &$updated) {
             $data = $request->validated();
+            $data['quantity_available'] = $data['quantity_on_hand'] - ($data['quantity_reserved'] ?? 0);
             $updated = $this->repository->update($inventory->id, $data);
         });
 

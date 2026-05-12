@@ -6,6 +6,7 @@ use App\Models\SalesItem;
 use App\Repositories\Interfaces\SalesItemRepository;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class SalesItemService extends BaseService
 {

@@ -11,6 +11,9 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\SalesItemController;
+use App\Http\Controllers\PersonnelController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\TransactionController;
 
 Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -44,6 +47,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Sales Item Routes
     Route::resource('sales-items', SalesItemController::class);
+
+    // Invoice / POS Routes
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/', [InvoiceController::class, 'index'])->name('index');
+        Route::post('/', [InvoiceController::class, 'store'])->name('store');
+        Route::get('/{salesOrder}', [InvoiceController::class, 'show'])->name('show');
+        Route::post('/{salesOrder}/items', [InvoiceController::class, 'addItem'])->name('add-item');
+        Route::put('/{salesOrder}/items/{salesItem}', [InvoiceController::class, 'updateItem'])->name('update-item');
+        Route::delete('/{salesOrder}/items/{salesItem}', [InvoiceController::class, 'removeItem'])->name('remove-item');
+        Route::post('/{salesOrder}/checkout', [InvoiceController::class, 'checkout'])->name('checkout');
+        Route::delete('/{salesOrder}', [InvoiceController::class, 'destroy'])->name('destroy');
+    });
+
+    // Transaction Routes (read-only history)
+    Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
+
+    // Personnel Routes
+    Route::prefix('personnel')->name('personnel.')->group(function () {
+        Route::get('/', [PersonnelController::class, 'index'])->name('index');
+        Route::get('/create', [PersonnelController::class, 'create'])->name('create');
+        Route::post('/', [PersonnelController::class, 'store'])->name('store');
+        Route::get('/{user}/edit', [PersonnelController::class, 'edit'])->name('edit');
+        Route::put('/{user}', [PersonnelController::class, 'update'])->name('update');
+        Route::delete('/{user}', [PersonnelController::class, 'destroy'])->name('destroy');
+        Route::post('/{user}/assign-branch', [PersonnelController::class, 'assignBranch'])->name('assign-branch');
+        Route::delete('/{user}/revoke-branch', [PersonnelController::class, 'revokeBranch'])->name('revoke-branch');
+        Route::post('/{user}/assign-role', [PersonnelController::class, 'assignRole'])->name('assign-role');
+        Route::delete('/{user}/revoke-role', [PersonnelController::class, 'revokeRole'])->name('revoke-role');
+    });
 });
 
 require __DIR__.'/settings.php';

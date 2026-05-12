@@ -7,12 +7,21 @@ use App\Repositories\Interfaces\ProductRepository;
 use App\DTOs\Product\ProductData;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductService extends BaseService
 {
     public function __construct(ProductRepository $productRepository)
     {
         $this->repository = $productRepository;
+    }
+
+    public function list(Request $request): LengthAwarePaginator
+    {
+        return $this->repository->getPaginated(
+            $request->only(['search', 'is_active', 'category_id']),
+            (int) $request->input('per_page', 10)
+        );
     }
 
     public function create(Request $request): Product

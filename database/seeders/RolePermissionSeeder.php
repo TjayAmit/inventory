@@ -14,9 +14,10 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Admin gets all permissions
-        $adminRole = Role::findByName('admin');
-        $adminRole->givePermissionTo(Permission::all());
+        // Admin and Owner get all permissions
+        $allPermissions = Permission::all();
+        Role::findByName('admin')->givePermissionTo($allPermissions);
+        Role::findByName('owner')->givePermissionTo($allPermissions);
 
         // Store Manager permissions
         $storeManagerRole = Role::findByName('store_manager');

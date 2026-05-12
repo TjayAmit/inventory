@@ -7,12 +7,21 @@ use App\Repositories\Interfaces\BranchRepository;
 use App\DTOs\Branch\BranchData;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class BranchService extends BaseService
 {
     public function __construct(BranchRepository $branchRepository)
     {
         $this->repository = $branchRepository;
+    }
+
+    public function list(Request $request): LengthAwarePaginator
+    {
+        return $this->repository->getPaginated(
+            $request->only(['search']),
+            (int) $request->input('per_page', 10)
+        );
     }
 
     public function create(Request $request): Branch

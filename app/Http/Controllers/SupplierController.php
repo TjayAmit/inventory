@@ -10,6 +10,9 @@ use Inertia\Inertia;
 
 class SupplierController extends Controller
 {
+    private const LOG = 'suppliers';
+    private const FIELDS = ['name', 'contact_person', 'email', 'phone', 'is_active'];
+
     public function __construct(private readonly SupplierService $supplierService) {}
 
     public function index(Request $request)
@@ -27,7 +30,14 @@ class SupplierController extends Controller
 
     public function store(SupplierRequest $request)
     {
-        $this->supplierService->create($request);
+        $supplier = $this->supplierService->create($request);
+
+        activity(self::LOG)
+            ->causedBy(auth()->user())
+            ->performedOn($supplier)
+            ->withProperties(['attributes' => $supplier->only(self::FIELDS)])
+            ->event('created')
+            ->log('created');
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier created successfully.');
@@ -51,7 +61,16 @@ class SupplierController extends Controller
 
     public function update(SupplierRequest $request, Supplier $supplier)
     {
-        $this->supplierService->update($request, $supplier);
+        $before = $supplier->only(self::FIELDS);
+
+        $updated = $this->supplierService->update($request, $supplier);
+
+        activity(self::LOG)
+            ->causedBy(auth()->user())
+            ->performedOn($updated)
+            ->withProperties(['old' => $before, 'attributes' => $updated->only(self::FIELDS)])
+            ->event('updated')
+            ->log('updated');
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier updated successfully.');
@@ -59,7 +78,16 @@ class SupplierController extends Controller
 
     public function destroy(Supplier $supplier)
     {
+        $snapshot = $supplier->only(self::FIELDS);
+
         $this->supplierService->delete($supplier);
+
+        activity(self::LOG)
+            ->causedBy(auth()->user())
+            ->performedOn($supplier)
+            ->withProperties(['attributes' => $snapshot])
+            ->event('deleted')
+            ->log('deleted');
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier deleted successfully.');

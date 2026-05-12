@@ -14,6 +14,7 @@ use App\Http\Controllers\SalesItemController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\DashboardController;
 
 Route::inertia('/', 'welcome', [
@@ -64,6 +65,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Transaction Routes (read-only history)
     Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
+
+    // Activity Log Routes (admin only)
+    Route::get('activity-logs', [ActivityLogController::class, 'index'])
+        ->name('activity-logs.index')
+        ->middleware('role:admin');
 
     // Personnel Routes
     Route::prefix('personnel')->name('personnel.')->group(function () {

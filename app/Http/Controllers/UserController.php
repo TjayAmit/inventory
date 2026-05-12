@@ -10,6 +10,9 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
+    private const LOG = 'users';
+    private const FIELDS = ['name', 'email', 'branch_id', 'is_active'];
+
     public function __construct(private readonly UserService $userService) {}
 
     public function index(Request $request)
@@ -27,7 +30,14 @@ class UserController extends Controller
 
     public function store(UserRequest $request)
     {
-        $this->userService->create($request);
+        $user = $this->userService->create($request);
+
+        activity(self::LOG)
+            ->causedBy(auth()->user())
+            ->performedOn($user)
+            ->withProperties(['attributes' => $user->only(self::FIELDS)])
+            ->event('created')
+            ->log('created');
 
         return redirect()->route('users.index')
             ->with('success', 'User created successfully.');
@@ -49,7 +59,16 @@ class UserController extends Controller
 
     public function update(UserRequest $request, User $user)
     {
-        $this->userService->update($request, $user);
+        $before = $user->only(self::FIELDS);
+
+        $updated = $this->userService->update($request, $user);
+
+        activity(self::LOG)
+            ->causedBy(auth()->user())
+            ->performedOn($updated)
+            ->withProperties(['old' => $before, 'attributes' => $updated->only(self::FIELDS)])
+            ->event('updated')
+            ->log('updated');
 
         return redirect()->route('users.index')
             ->with('success', 'User updated successfully.');
@@ -57,7 +76,16 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        $snapshot = $user->only(self::FIELDS + ['email']);
+
         $this->userService->delete($user);
+
+        activity(self::LOG)
+            ->causedBy(auth()->user())
+            ->performedOn($user)
+            ->withProperties(['attributes' => $snapshot])
+            ->event('deleted')
+            ->log('deleted');
 
         return redirect()->route('users.index')
             ->with('success', 'User deleted successfully.');

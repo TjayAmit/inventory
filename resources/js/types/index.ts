@@ -10,3 +10,4 @@ export type * from './users';
 export type * from './personnel';
 export type * from './invoice';
 export type * from './transaction';
+export type * from './activity-log';

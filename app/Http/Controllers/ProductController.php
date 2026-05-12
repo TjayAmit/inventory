@@ -11,6 +11,9 @@ use Inertia\Inertia;
 
 class ProductController extends Controller
 {
+    private const LOG = 'products';
+    private const FIELDS = ['name', 'sku', 'selling_price', 'cost_price', 'is_active', 'reorder_level'];
+
     public function __construct(private readonly ProductService $productService) {}
 
     public function index(Request $request)
@@ -33,7 +36,14 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request)
     {
-        $this->productService->create($request);
+        $product = $this->productService->create($request);
+
+        activity(self::LOG)
+            ->causedBy(auth()->user())
+            ->performedOn($product)
+            ->withProperties(['attributes' => $product->only(self::FIELDS)])
+            ->event('created')
+            ->log('created');
 
         return redirect()->route('products.index')
             ->with('success', 'Product created successfully.');
@@ -63,7 +73,16 @@ class ProductController extends Controller
 
     public function update(ProductRequest $request, Product $product)
     {
-        $this->productService->update($request, $product);
+        $before = $product->only(self::FIELDS);
+
+        $updated = $this->productService->update($request, $product);
+
+        activity(self::LOG)
+            ->causedBy(auth()->user())
+            ->performedOn($updated)
+            ->withProperties(['old' => $before, 'attributes' => $updated->only(self::FIELDS)])
+            ->event('updated')
+            ->log('updated');
 
         return redirect()->route('products.index')
             ->with('success', 'Product updated successfully.');
@@ -71,7 +90,16 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        $snapshot = $product->only(self::FIELDS);
+
         $this->productService->delete($product);
+
+        activity(self::LOG)
+            ->causedBy(auth()->user())
+            ->performedOn($product)
+            ->withProperties(['attributes' => $snapshot])
+            ->event('deleted')
+            ->log('deleted');
 
         return redirect()->route('products.index')
             ->with('success', 'Product deleted successfully.');

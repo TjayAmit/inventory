@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Users, Package, Boxes, Building2, Truck, ShoppingCart, FileText, UserCog, History } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Users, Package, Boxes, Building2, Truck, ShoppingCart, FileText, UserCog, History, ScrollText } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -59,6 +59,12 @@ const navGroups: NavGroup[] = [
                 href: personnel(),
                 icon: UserCog,
                 roles: ['admin', 'owner'],
+            },
+            {
+                title: 'Activity Log',
+                href: '/activity-logs',
+                icon: ScrollText,
+                roles: ['admin'],
             },
         ],
     },

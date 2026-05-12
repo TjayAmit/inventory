@@ -10,6 +10,8 @@ use Inertia\Inertia;
 
 class InvoiceController extends Controller
 {
+    private const LOG = 'sales-orders';
+
     public function __construct(private readonly InvoiceService $invoiceService) {}
 
     public function index(Request $request)
@@ -25,6 +27,13 @@ class InvoiceController extends Controller
     public function store(Request $request)
     {
         $invoice = $this->invoiceService->createDraft($request);
+
+        activity(self::LOG)
+            ->causedBy(auth()->user())
+            ->performedOn($invoice)
+            ->withProperties(['attributes' => ['order_number' => $invoice->order_number, 'status' => $invoice->status]])
+            ->event('created')
+            ->log('Invoice draft created');
 
         return redirect()->route('invoices.show', $invoice);
     }
@@ -57,7 +66,21 @@ class InvoiceController extends Controller
 
     public function checkout(Request $request, SalesOrder $invoice)
     {
+        $before = $invoice->only(['status', 'payment_status', 'total_amount']);
+
         $this->invoiceService->checkout($request, $invoice);
+
+        $invoice->refresh();
+
+        activity(self::LOG)
+            ->causedBy(auth()->user())
+            ->performedOn($invoice)
+            ->withProperties([
+                'old'        => $before,
+                'attributes' => $invoice->only(['status', 'payment_status', 'payment_method', 'total_amount', 'paid_amount', 'change_amount']),
+            ])
+            ->event('updated')
+            ->log('Invoice checked out');
 
         return redirect()->route('invoices.show', $invoice)
             ->with('success', 'Invoice #' . $invoice->order_number . ' completed.');
@@ -65,7 +88,16 @@ class InvoiceController extends Controller
 
     public function destroy(SalesOrder $invoice)
     {
+        $snapshot = $invoice->only(['order_number', 'status', 'total_amount']);
+
         $this->invoiceService->cancelDraft($invoice);
+
+        activity(self::LOG)
+            ->causedBy(auth()->user())
+            ->performedOn($invoice)
+            ->withProperties(['attributes' => $snapshot])
+            ->event('deleted')
+            ->log('Invoice draft cancelled');
 
         return redirect()->route('invoices.index')
             ->with('success', 'Invoice cancelled.');

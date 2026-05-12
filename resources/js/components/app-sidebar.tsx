@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Users, Package, Boxes, Building2, Truck, ShoppingCart, FileText, UserCog } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Users, Package, Boxes, Building2, Truck, ShoppingCart, FileText, UserCog, History } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -21,6 +21,7 @@ import { index as products } from '@/routes/products';
 import { index as suppliers } from '@/routes/suppliers';
 import { index as salesOrders } from '@/routes/sales-orders';
 import { index as invoices } from '@/routes/invoices';
+import { index as transactions } from '@/routes/transactions';
 import { index as personnel } from '@/routes/personnel';
 import { usePermission } from '@/hooks/use-permission';
 import type { NavGroup, NavItem } from '@/types';
@@ -102,6 +103,12 @@ const navGroups: NavGroup[] = [
                 title: 'Invoice',
                 href: invoices(),
                 icon: FileText,
+                roles: ['admin', 'owner', 'store_manager', 'cashier'],
+            },
+            {
+                title: 'Transactions',
+                href: transactions(),
+                icon: History,
                 roles: ['admin', 'owner', 'store_manager', 'cashier'],
             },
         ],

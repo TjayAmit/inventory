@@ -4,58 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SupplierRequest;
 use App\Models\Supplier;
+use App\Services\SupplierService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class SupplierController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(private readonly SupplierService $supplierService) {}
+
     public function index(Request $request)
     {
-        $query = Supplier::when($request->search, function ($query, $search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('supplier_code', 'like', "%{$search}%")
-                    ->orWhere('contact_person', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('city', 'like', "%{$search}%");
-            });
-        })
-            ->orderBy('created_at', 'desc');
-
-        $suppliers = $query->paginate($request->per_page ?? 10)
-            ->withQueryString();
-
         return Inertia::render('suppliers/index', [
-            'data' => $suppliers,
+            'data'    => $this->supplierService->list($request)->withQueryString(),
             'filters' => $request->only(['search', 'per_page']),
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return Inertia::render('suppliers/create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(SupplierRequest $request)
     {
-        Supplier::create($request->validated());
+        $this->supplierService->create($request);
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Supplier $supplier)
     {
         $supplier->load('purchaseOrders');
@@ -65,9 +42,6 @@ class SupplierController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Supplier $supplier)
     {
         return Inertia::render('suppliers/edit', [
@@ -75,23 +49,17 @@ class SupplierController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(SupplierRequest $request, Supplier $supplier)
     {
-        $supplier->update($request->validated());
+        $this->supplierService->update($request, $supplier);
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Supplier $supplier)
     {
-        $supplier->delete();
+        $this->supplierService->delete($supplier);
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier deleted successfully.');

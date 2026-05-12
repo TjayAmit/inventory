@@ -15,6 +15,14 @@ class SalesItemService extends BaseService
         $this->repository = $salesItemRepository;
     }
 
+    public function list(Request $request): LengthAwarePaginator
+    {
+        return $this->repository->getPaginated(
+            $request->only(['sales_order_id', 'product_id']),
+            (int) $request->input('per_page', 10)
+        );
+    }
+
     public function create(Request $request): SalesItem
     {
         $model = null;
@@ -22,6 +30,9 @@ class SalesItemService extends BaseService
 
         $this->executeInTransaction(function () use ($request, &$model, &$data) {
             $data = $request->validated();
+            $data['total_price'] = ($data['quantity'] * $data['unit_price']) - ($data['discount_amount'] ?? 0);
+            $data['total_cost']  = $data['quantity'] * ($data['unit_cost'] ?? 0);
+            $data['profit']      = $data['total_price'] - $data['total_cost'];
             $model = $this->repository->create($data);
         });
 
@@ -38,6 +49,9 @@ class SalesItemService extends BaseService
 
         $this->executeInTransaction(function () use ($request, $salesItem, &$data, &$updated) {
             $data = $request->validated();
+            $data['total_price'] = ($data['quantity'] * $data['unit_price']) - ($data['discount_amount'] ?? 0);
+            $data['total_cost']  = $data['quantity'] * ($data['unit_cost'] ?? 0);
+            $data['profit']      = $data['total_price'] - $data['total_cost'];
             $updated = $this->repository->update($salesItem->id, $data);
         });
 

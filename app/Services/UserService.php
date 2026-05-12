@@ -31,6 +31,14 @@ class UserService extends BaseService
         return $model;
     }
 
+    public function list(Request $request): LengthAwarePaginator
+    {
+        return $this->repository->getPaginated(
+            $request->only(['search']),
+            (int) $request->input('per_page', 10)
+        );
+    }
+
     public function update(Request $request, User $user): User
     {
         $old = $user->getOriginal();
@@ -39,12 +47,7 @@ class UserService extends BaseService
 
         $this->executeInTransaction(function () use ($request, $user, &$dto, &$updated) {
             $data = $request->validated();
-            
-            if (isset($data['password'])) {
-                unset($data['password']);
-            }
-            
-            $updated = $this->repository->update($user->id, $data);
+            $updated = $this->repository->updateWithPassword($user->id, $data);
             $dto = $data;
         });
 

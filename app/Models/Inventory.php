@@ -100,9 +100,14 @@ class Inventory extends Model
     public function scopeLowStock($query)
     {
         return $query->where('quantity_on_hand', '<=', function ($query) {
-            $query->select('reorder_level')
+            $query->selectRaw('COALESCE(reorder_level, 0)')
                   ->from('products')
-                  ->whereColumn('products.id', 'inventory.product_id');
+                  ->whereColumn('products.id', 'inventories.product_id');
+        })->whereExists(function ($sub) {
+            $sub->selectRaw('1')
+                ->from('products')
+                ->whereColumn('products.id', 'inventories.product_id')
+                ->where('reorder_level', '>', 0);
         });
     }
 
